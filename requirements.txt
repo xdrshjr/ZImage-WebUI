@@ -1,0 +1,21 @@
+# Flask Web框架
+Flask==3.0.0
+Werkzeug==3.0.1
+flask-cors==4.0.0
+
+# PyTorch和相关库
+torch>=2.0.0
+diffusers>=0.25.0
+transformers>=4.35.0
+accelerate>=0.25.0
+
+# 图像处理
+Pillow>=10.0.0
+
+# 其他工具库
+python-dotenv>=1.0.0
+
+# 测试依赖
+pytest>=7.4.0
+requests>=2.31.0
+

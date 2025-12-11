@@ -1,33 +1,94 @@
-# Z-Image-Turbo Flask 后台服务
+# Z-Image 图像生成系统
 
-基于Flask框架的Z-Image-Turbo图像生成模型API服务，提供生产级别的图像生成接口。
+基于 Z-Image-Turbo 模型的 AI 图像生成系统，包含 Flask 后台服务和 Next.js 前端应用，提供完整的图像生成解决方案。
+
+![img.png](images/img.png)
+
+## 项目简介
+
+Z-Image 是一个完整的 AI 图像生成系统，由以下两部分组成：
+
+- **后台服务**：基于 Flask 的 Z-Image-Turbo 模型 API 服务，提供图像生成接口
+- **前台应用**：基于 Next.js 14 的现代化 Web 应用，提供优雅的用户界面
+
+系统采用前后端分离架构，支持任务队列管理、实时状态追踪、批量生成等功能，适用于生产环境部署。
 
 ## 功能特性
 
-- ✅ 模型启动时一次性加载，全局常驻GPU内存
-- ✅ 线程安全的任务队列机制
-- ✅ 支持任务状态追踪和查询
-- ✅ 完善的错误处理和日志记录
-- ✅ 统一的JSON API响应格式
-- ✅ 支持GPU使用情况监控
-- ✅ 任务超时和队列管理
+### 前台功能
+
+- ✅ **苹果风格设计**：简洁优雅的 UI 设计，遵循苹果设计语言
+- ✅ **移动端阻止**：仅支持桌面端访问，移动端显示友好提示
+- ✅ **后台服务配置**：可配置后台服务 IP 和端口，支持连接测试
+- ✅ **文本生成图片**：支持多张图片批量生成（1-4 张）
+- ✅ **参数自定义**：支持图片尺寸、推理步数、随机种子等参数设置
+- ✅ **提示词润色**：提供模板库和提示词增强功能
+- ✅ **任务状态追踪**：实时轮询任务状态，显示队列位置和进度
+- ✅ **图片预览下载**：支持图片预览和下载功能
+- ✅ **错误处理**：完善的错误提示和异常处理
+- ✅ **响应式设计**：适配不同桌面屏幕尺寸
+
+### 后台功能
+
+- ✅ **模型常驻内存**：模型启动时一次性加载，全局常驻 GPU 内存
+- ✅ **任务队列机制**：线程安全的任务队列，支持并发请求
+- ✅ **状态追踪**：完善的任务状态追踪和查询接口
+- ✅ **错误处理**：完善的错误处理和日志记录
+- ✅ **GPU 监控**：支持 GPU 使用情况监控
+- ✅ **队列管理**：任务超时和队列管理机制
+- ✅ **统一 API**：统一的 JSON API 响应格式
+
+## 技术栈
+
+### 前台技术栈
+
+- **Next.js 14+** (App Router)
+- **React 18+**
+- **TypeScript**
+- **Tailwind CSS** - 实用优先的 CSS 框架
+- **shadcn/ui** - 基于 Radix UI 的组件库
+- **Lucide React** - 图标库
+- **axios** - HTTP 客户端
+- **react-hot-toast** - 消息提示
+
+### 后台技术栈
+
+- **Flask** - Python Web 框架
+- **PyTorch** - 深度学习框架
+- **CUDA** - GPU 加速
+- **Diffusers** - Hugging Face 扩散模型库
+- **Gunicorn** - WSGI HTTP 服务器（生产环境）
 
 ## 环境要求
 
+### 前台环境
+
+- Node.js 18+
+- npm / yarn / pnpm
+
+### 后台环境
+
 - Python 3.8+
-- CUDA 11.8+ (GPU环境)
-- 至少16GB GPU显存
+- CUDA 11.8+ (GPU 环境)
+- 至少 16GB GPU 显存
 - 8GB+ 系统内存
 
-## 安装部署
+## 快速开始
 
-### 1. 安装依赖
+### 1. 克隆项目
+
+```bash
+git clone <repository-url>
+cd Z-Image-BackendService
+```
+
+### 2. 安装后台依赖
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. 配置环境变量（可选）
+### 3. 配置后台服务（可选）
 
 创建 `.env` 文件或直接设置环境变量：
 
@@ -53,7 +114,7 @@ TASK_TIMEOUT=300
 OUTPUT_DIR=./outputs
 ```
 
-### 3. 启动服务
+### 4. 启动后台服务
 
 #### 开发模式
 
@@ -61,586 +122,452 @@ OUTPUT_DIR=./outputs
 python app.py
 ```
 
-#### 生产模式（使用Gunicorn）
+#### 生产模式（使用 Gunicorn）
 
 ```bash
 gunicorn -w 1 -b 0.0.0.0:5000 --timeout 600 app:app
 ```
 
-**注意**: 由于模型需要独占GPU，worker数量应设置为1。
+**注意**：由于模型需要独占 GPU，worker 数量应设置为 1。
 
-## API接口文档
+后台服务启动后，默认运行在 `http://localhost:5000`
 
-所有API接口统一返回格式：
+### 5. 安装前台依赖
 
-```json
-{
-  "code": 200,
-  "message": "success",
-  "data": {}
+```bash
+cd frontend
+npm install
+# 或
+yarn install
+# 或
+pnpm install
+```
+
+### 6. 配置前台后台服务地址
+
+有两种方式配置后台服务地址：
+
+**方式一：使用环境变量（推荐）**
+
+在 `frontend` 目录下创建 `.env.local` 文件：
+
+```bash
+NEXT_PUBLIC_API_BASE_URL=http://localhost:5000
+```
+
+或者复制 `.env.example` 文件：
+
+```bash
+cp .env.example .env.local
+```
+
+然后修改 `.env.local` 中的地址。
+
+**方式二：在应用内配置**
+
+- 启动前台应用后，点击页面右上角的设置图标
+- 输入后台服务地址，例如：`http://localhost:5000`
+- 点击"测试连接"验证配置
+- 点击"保存"保存配置
+
+**配置优先级**：环境变量 > localStorage 配置 > 默认值 (`http://localhost:5000`)
+
+### 7. 启动前台服务
+
+```bash
+cd frontend
+npm run dev
+# 或
+yarn dev
+# 或
+pnpm dev
+```
+
+前台服务启动后，访问 `http://localhost:3000`
+
+## 一键启动（推荐）
+
+项目根目录提供了 `start.sh` 启动脚本，可以一键打包前台并启动后台和前台服务。
+
+### 使用方法
+
+1. **赋予执行权限**（首次使用需要）：
+
+```bash
+chmod +x start.sh
+```
+
+2. **执行启动脚本**：
+
+```bash
+./start.sh
+```
+
+### 脚本功能
+
+- ✅ 自动检查环境依赖（Node.js、npm、Python）
+- ✅ 自动打包前台应用（`npm run build`）
+- ✅ 后台启动 Flask 服务（端口 5000）
+- ✅ 前台启动 Next.js 服务（端口 3000）
+- ✅ 详细的日志输出和错误处理
+
+### 服务地址
+
+- 后台服务：http://localhost:5000
+- 前台服务：http://localhost:3000
+
+### 停止服务
+
+项目根目录提供了 `stop.sh` 停止脚本，可以一键停止后台和前台服务：
+
+```bash
+# 赋予执行权限（首次使用需要）
+chmod +x stop.sh
+
+# 执行停止脚本
+./stop.sh
+```
+
+停止脚本功能：
+- ✅ 自动查找并停止后台服务（端口 5000）
+- ✅ 自动查找并停止前台服务（端口 3000）
+- ✅ 支持多种进程查找方式（lsof、netstat、ps）
+- ✅ 如果正常停止失败，会自动尝试强制停止
+- ✅ 详细的日志输出
+
+## 部署指南
+
+### 后台服务部署
+
+#### 使用 Gunicorn 部署
+
+```bash
+gunicorn -w 1 -b 0.0.0.0:5000 --timeout 600 app:app
+```
+
+#### 使用 systemd 管理（Linux）
+
+创建服务文件 `/etc/systemd/system/z-image-backend.service`：
+
+```ini
+[Unit]
+Description=Z-Image Backend Service
+After=network.target
+
+[Service]
+Type=simple
+User=your-user
+WorkingDirectory=/path/to/Z-Image-BackendService
+Environment="PATH=/path/to/venv/bin"
+ExecStart=/path/to/venv/bin/gunicorn -w 1 -b 0.0.0.0:5000 --timeout 600 app:app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+启动服务：
+
+```bash
+sudo systemctl start z-image-backend
+sudo systemctl enable z-image-backend
+```
+
+#### 使用 Nginx 反向代理（可选）
+
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
 }
 ```
+
+### 前台服务部署
+
+#### 构建生产版本
+
+```bash
+cd frontend
+npm run build
+```
+
+#### 启动生产服务器
+
+```bash
+npm start
+```
+
+#### 使用 PM2 管理（推荐）
+
+```bash
+# 安装 PM2
+npm install -g pm2
+
+# 启动应用
+cd frontend
+pm2 start npm --name "z-image-frontend" -- start
+
+# 查看状态
+pm2 status
+
+# 查看日志
+pm2 logs z-image-frontend
+
+# 停止应用
+pm2 stop z-image-frontend
+
+# 重启应用
+pm2 restart z-image-frontend
+```
+
+#### 使用 Nginx 部署静态文件
+
+```bash
+# 构建静态文件
+cd frontend
+npm run build
+
+# 导出静态文件
+npm run export  # 如果配置了静态导出
+```
+
+Nginx 配置：
+
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+    root /path/to/frontend/out;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # API 代理到后台服务
+    location /api {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+### Docker 部署（可选）
+
+#### 后台 Dockerfile
+
+```dockerfile
+FROM python:3.10-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+EXPOSE 5000
+
+CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:5000", "--timeout", "600", "app:app"]
+```
+
+#### 前台 Dockerfile
+
+```dockerfile
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+RUN npm run build
+
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/node_modules ./node_modules
+
+EXPOSE 3000
+
+CMD ["npm", "start"]
+```
+
+## API 接口概览
+
+后台服务提供以下主要 API 接口：
 
 ### 1. 健康检查
 
-**接口**: `GET /health`
-
-**说明**: 检查服务健康状态
-
-**响应示例**:
-
-```json
-{
-  "code": 200,
-  "message": "success",
-  "data": {
-    "status": "healthy",
-    "model_loaded": true
-  }
-}
+```
+GET /health
 ```
 
-**cURL示例**:
-
-```bash
-curl http://localhost:5000/health
-```
-
-**Python示例**:
-
-```python
-import requests
-
-response = requests.get("http://localhost:5000/health")
-print(response.json())
-```
-
----
+检查服务健康状态和模型加载状态。
 
 ### 2. 提交生成任务
 
-**接口**: `POST /api/generate`
-
-**说明**: 提交图像生成任务，返回任务ID
-
-**请求参数**:
-
-| 参数名 | 类型 | 必填 | 默认值 | 说明 |
-|--------|------|------|--------|------|
-| prompt | string | 是 | - | 文本提示词 |
-| height | integer | 否 | 1024 | 图像高度 (64-2048) |
-| width | integer | 否 | 1024 | 图像宽度 (64-2048) |
-| num_inference_steps | integer | 否 | 9 | 推理步数 (1-50) |
-| seed | integer | 否 | 随机 | 随机种子 |
-
-**请求示例**:
-
-```json
-{
-  "prompt": "A beautiful sunset over the ocean",
-  "height": 1024,
-  "width": 1024,
-  "num_inference_steps": 9,
-  "seed": 42
-}
+```
+POST /api/generate
 ```
 
-**响应示例**:
+提交图像生成任务，返回任务 ID。
 
-```json
-{
-  "code": 200,
-  "message": "success",
-  "data": {
-    "task_id": "550e8400-e29b-41d4-a716-446655440000",
-    "status": "pending",
-    "queue_position": 3
-  }
-}
-```
-
-**错误响应**:
-
-```json
-{
-  "code": 400,
-  "message": "prompt参数必填且不能为空",
-  "data": {}
-}
-```
-
-**cURL示例**:
-
-```bash
-curl -X POST http://localhost:5000/api/generate \
-  -H "Content-Type: application/json" \
-  -d '{
-    "prompt": "A beautiful sunset over the ocean",
-    "height": 1024,
-    "width": 1024,
-    "num_inference_steps": 9
-  }'
-```
-
-**Python示例**:
-
-```python
-import requests
-
-url = "http://localhost:5000/api/generate"
-data = {
-    "prompt": "A beautiful sunset over the ocean",
-    "height": 1024,
-    "width": 1024,
-    "num_inference_steps": 9,
-    "seed": 42
-}
-
-response = requests.post(url, json=data)
-result = response.json()
-task_id = result["data"]["task_id"]
-print(f"任务ID: {task_id}")
-```
-
----
+**请求参数**：
+- `prompt` (必填): 文本提示词
+- `height` (可选): 图像高度，默认 1024
+- `width` (可选): 图像宽度，默认 1024
+- `num_inference_steps` (可选): 推理步数，默认 9
+- `seed` (可选): 随机种子
 
 ### 3. 查询任务状态
 
-**接口**: `GET /api/task/<task_id>`
-
-**说明**: 查询指定任务的状态和详细信息
-
-**路径参数**:
-
-| 参数名 | 类型 | 说明 |
-|--------|------|------|
-| task_id | string | 任务ID |
-
-**响应示例** (排队中):
-
-```json
-{
-  "code": 200,
-  "message": "success",
-  "data": {
-    "task_id": "550e8400-e29b-41d4-a716-446655440000",
-    "status": "pending",
-    "prompt": "A beautiful sunset over the ocean",
-    "height": 1024,
-    "width": 1024,
-    "num_inference_steps": 9,
-    "seed": 42,
-    "created_at": "2024-01-01T12:00:00",
-    "queue_position": 2
-  }
-}
+```
+GET /api/task/<task_id>
 ```
 
-**响应示例** (生成中):
-
-```json
-{
-  "code": 200,
-  "message": "success",
-  "data": {
-    "task_id": "550e8400-e29b-41d4-a716-446655440000",
-    "status": "processing",
-    "prompt": "A beautiful sunset over the ocean",
-    "height": 1024,
-    "width": 1024,
-    "num_inference_steps": 9,
-    "seed": 42,
-    "created_at": "2024-01-01T12:00:00",
-    "started_at": "2024-01-01T12:00:05",
-    "queue_position": 0
-  }
-}
-```
-
-**响应示例** (已完成):
-
-```json
-{
-  "code": 200,
-  "message": "success",
-  "data": {
-    "task_id": "550e8400-e29b-41d4-a716-446655440000",
-    "status": "completed",
-    "prompt": "A beautiful sunset over the ocean",
-    "height": 1024,
-    "width": 1024,
-    "num_inference_steps": 9,
-    "seed": 42,
-    "created_at": "2024-01-01T12:00:00",
-    "started_at": "2024-01-01T12:00:05",
-    "completed_at": "2024-01-01T12:00:30",
-    "image_path": "/path/to/outputs/550e8400-e29b-41d4-a716-446655440000.png",
-    "queue_position": 0
-  }
-}
-```
-
-**响应示例** (失败):
-
-```json
-{
-  "code": 200,
-  "message": "success",
-  "data": {
-    "task_id": "550e8400-e29b-41d4-a716-446655440000",
-    "status": "failed",
-    "prompt": "A beautiful sunset over the ocean",
-    "error_message": "CUDA out of memory",
-    "created_at": "2024-01-01T12:00:00",
-    "started_at": "2024-01-01T12:00:05",
-    "completed_at": "2024-01-01T12:00:10"
-  }
-}
-```
-
-**cURL示例**:
-
-```bash
-curl http://localhost:5000/api/task/550e8400-e29b-41d4-a716-446655440000
-```
-
-**Python示例**:
-
-```python
-import requests
-import time
-
-task_id = "550e8400-e29b-41d4-a716-446655440000"
-
-while True:
-    response = requests.get(f"http://localhost:5000/api/task/{task_id}")
-    result = response.json()
-    status = result["data"]["status"]
-    
-    print(f"任务状态: {status}")
-    
-    if status == "completed":
-        print("任务完成！")
-        break
-    elif status == "failed":
-        print(f"任务失败: {result['data'].get('error_message')}")
-        break
-    
-    time.sleep(2)  # 等待2秒后再次查询
-```
-
----
+查询指定任务的状态和详细信息。
 
 ### 4. 获取生成结果
 
-**接口**: `GET /api/result/<task_id>`
-
-**说明**: 获取生成的图像文件（任务完成时）或状态信息
-
-**路径参数**:
-
-| 参数名 | 类型 | 说明 |
-|--------|------|------|
-| task_id | string | 任务ID |
-
-**响应**:
-
-- 如果任务已完成: 返回PNG图像文件
-- 如果任务未完成: 返回JSON状态信息
-
-**响应示例** (未完成):
-
-```json
-{
-  "code": 200,
-  "message": "success",
-  "data": {
-    "task_id": "550e8400-e29b-41d4-a716-446655440000",
-    "status": "processing",
-    "message": "任务尚未完成"
-  }
-}
+```
+GET /api/result/<task_id>
 ```
 
-**cURL示例**:
-
-```bash
-# 获取图像文件
-curl http://localhost:5000/api/result/550e8400-e29b-41d4-a716-446655440000 \
-  --output result.png
-```
-
-**Python示例**:
-
-```python
-import requests
-
-task_id = "550e8400-e29b-41d4-a716-446655440000"
-url = f"http://localhost:5000/api/result/{task_id}"
-
-response = requests.get(url)
-
-if response.headers.get('content-type') == 'image/png':
-    # 保存图像
-    with open('result.png', 'wb') as f:
-        f.write(response.content)
-    print("图像已保存")
-else:
-    # 显示状态信息
-    print(response.json())
-```
-
----
+获取生成的图像文件（任务完成时）。
 
 ### 5. 查询系统状态
 
-**接口**: `GET /api/status`
-
-**说明**: 查询系统整体状态，包括队列信息、GPU使用情况等
-
-**响应示例**:
-
-```json
-{
-  "code": 200,
-  "message": "success",
-  "data": {
-    "queue": {
-      "queue_size": 5,
-      "max_queue_size": 100,
-      "pending_tasks": 3,
-      "processing_tasks": 1,
-      "completed_tasks": 10,
-      "failed_tasks": 0,
-      "total_tasks": 14
-    },
-    "gpu": {
-      "available": true,
-      "device": "cuda:0",
-      "memory_allocated_gb": 12.5,
-      "memory_reserved_gb": 14.0,
-      "memory_total_gb": 24.0,
-      "memory_usage_percent": 52.08
-    },
-    "model_loaded": true
-  }
-}
+```
+GET /api/status
 ```
 
-**cURL示例**:
+查询系统整体状态，包括队列信息、GPU 使用情况等。
 
-```bash
-curl http://localhost:5000/api/status
-```
+详细 API 文档请参考 `README-BackendService.md`。
 
-**Python示例**:
+## 使用说明
 
-```python
-import requests
+### 生成图片
 
-response = requests.get("http://localhost:5000/api/status")
-status = response.json()["data"]
+1. 在提示词输入框中输入您想要生成的图像描述
+2. 设置生成参数：
+   - **图片数量**：选择生成 1-4 张图片
+   - **图片尺寸**：选择预设尺寸或自定义宽度和高度
+   - **推理步数**：1-50，数值越大质量越好但速度越慢（默认 9）
+   - **随机种子**：可选，相同种子和提示词会生成相同图像
+3. 点击"开始生成"按钮
+4. 任务提交后，在右侧任务列表中查看进度
 
-print(f"队列长度: {status['queue']['queue_size']}")
-print(f"GPU使用率: {status['gpu']['memory_usage_percent']}%")
-```
+### 提示词润色
 
----
+1. 点击提示词输入框右侧的"润色"按钮
+2. 选择以下方式之一：
+   - **使用模板**：从模板库中选择预设提示词模板
+   - **增强提示词**：自动为当前提示词添加质量词和风格词
 
-## 错误码说明
+### 预览和下载图片
 
-| 错误码 | 说明 |
-|--------|------|
-| 200 | 请求成功 |
-| 400 | 请求参数错误 |
-| 404 | 资源不存在（任务不存在、接口不存在等） |
-| 500 | 服务器内部错误 |
-| 503 | 服务不可用（模型未加载、队列已满等） |
+1. 任务完成后，在任务列表中点击"预览"按钮
+2. 在预览模态框中查看完整尺寸图片
+3. 点击"下载"按钮保存图片到本地
+4. 支持键盘快捷键：按 `ESC` 键关闭预览
 
-## 任务状态说明
+## 常见问题
 
-| 状态 | 说明 |
-|------|------|
-| pending | 任务在队列中等待处理 |
-| processing | 任务正在GPU上生成图像 |
-| completed | 任务已完成，图像已生成 |
-| failed | 任务处理失败 |
+### 连接后台失败怎么办？
 
-## 完整使用示例
+- 检查后台服务是否已启动
+- 检查后台服务地址配置是否正确
+- 检查网络连接是否正常
+- 检查防火墙设置
+- 使用"测试连接"功能验证配置
 
-### Python完整示例
+### 生成失败的常见原因
 
-```python
-import requests
-import time
-import os
+- **队列已满**：等待队列中的任务完成后再试
+- **模型未加载**：检查后台服务日志，确认模型加载成功
+- **GPU 内存不足**：降低图片尺寸或推理步数
+- **参数错误**：检查参数是否在允许范围内
 
-# 1. 检查服务健康状态
-response = requests.get("http://localhost:5000/health")
-print("服务状态:", response.json())
+### 任务一直显示"等待中"？
 
-# 2. 提交生成任务
-generate_url = "http://localhost:5000/api/generate"
-task_data = {
-    "prompt": "A beautiful Chinese landscape with mountains and rivers",
-    "height": 1024,
-    "width": 1024,
-    "num_inference_steps": 9,
-    "seed": 42
-}
-
-response = requests.post(generate_url, json=task_data)
-result = response.json()
-
-if result["code"] != 200:
-    print(f"提交任务失败: {result['message']}")
-    exit(1)
-
-task_id = result["data"]["task_id"]
-print(f"任务已提交，任务ID: {task_id}")
-
-# 3. 轮询查询任务状态
-task_url = f"http://localhost:5000/api/task/{task_id}"
-max_wait_time = 300  # 最大等待5分钟
-start_time = time.time()
-
-while True:
-    response = requests.get(task_url)
-    result = response.json()
-    status = result["data"]["status"]
-    
-    print(f"任务状态: {status}")
-    
-    if status == "completed":
-        print("任务完成！")
-        break
-    elif status == "failed":
-        print(f"任务失败: {result['data'].get('error_message')}")
-        exit(1)
-    
-    # 检查超时
-    if time.time() - start_time > max_wait_time:
-        print("任务超时")
-        exit(1)
-    
-    time.sleep(2)
-
-# 4. 获取生成的图像
-result_url = f"http://localhost:5000/api/result/{task_id}"
-response = requests.get(result_url)
-
-if response.headers.get('content-type') == 'image/png':
-    output_path = f"output_{task_id}.png"
-    with open(output_path, 'wb') as f:
-        f.write(response.content)
-    print(f"图像已保存至: {output_path}")
-else:
-    print("获取图像失败:", response.json())
-```
-
-### cURL完整示例
-
-```bash
-#!/bin/bash
-
-# 1. 检查服务状态
-echo "检查服务状态..."
-curl http://localhost:5000/health
-
-# 2. 提交任务
-echo -e "\n提交生成任务..."
-TASK_RESPONSE=$(curl -s -X POST http://localhost:5000/api/generate \
-  -H "Content-Type: application/json" \
-  -d '{
-    "prompt": "A beautiful Chinese landscape",
-    "height": 1024,
-    "width": 1024,
-    "num_inference_steps": 9
-  }')
-
-echo $TASK_RESPONSE | jq '.'
-
-TASK_ID=$(echo $TASK_RESPONSE | jq -r '.data.task_id')
-echo "任务ID: $TASK_ID"
-
-# 3. 查询任务状态
-echo -e "\n查询任务状态..."
-while true; do
-  STATUS_RESPONSE=$(curl -s http://localhost:5000/api/task/$TASK_ID)
-  STATUS=$(echo $STATUS_RESPONSE | jq -r '.data.status')
-  
-  echo "当前状态: $STATUS"
-  
-  if [ "$STATUS" == "completed" ]; then
-    echo "任务完成！"
-    break
-  elif [ "$STATUS" == "failed" ]; then
-    echo "任务失败"
-    exit 1
-  fi
-  
-  sleep 2
-done
-
-# 4. 下载图像
-echo -e "\n下载生成的图像..."
-curl http://localhost:5000/api/result/$TASK_ID \
-  --output "result_${TASK_ID}.png"
-
-echo "图像已保存"
-```
-
-## 性能优化建议
-
-1. **模型编译**: 在配置中启用 `ENABLE_MODEL_COMPILE=true` 可以加速推理，但首次运行会较慢
-2. **Flash Attention**: 默认启用Flash Attention-2，可提升性能
-3. **队列管理**: 根据GPU显存调整 `MAX_QUEUE_SIZE`，避免内存溢出
-4. **批量处理**: 虽然当前版本不支持批量，但可以通过并发提交多个任务来提高吞吐量
-
-## 故障排查
+- 检查后台服务是否正常运行
+- 查看任务队列位置，如果位置很大可能需要等待较长时间
+- 检查是否有其他任务正在处理
 
 ### 模型加载失败
 
-- 检查CUDA是否可用: `python -c "import torch; print(torch.cuda.is_available())"`
-- 检查GPU显存是否足够（至少16GB）
+- 检查 CUDA 是否可用：`python -c "import torch; print(torch.cuda.is_available())"`
+- 检查 GPU 显存是否足够（至少 16GB）
 - 检查模型路径是否正确
 
-### 任务队列已满
+### GPU 内存不足
 
-- 增加 `MAX_QUEUE_SIZE` 配置
-- 等待队列中的任务完成
-- 检查是否有任务卡住
-
-### GPU内存不足
-
-- 启用CPU Offloading: `ENABLE_CPU_OFFLOAD=true`
+- 启用 CPU Offloading：`ENABLE_CPU_OFFLOAD=true`
 - 减少并发任务数量
 - 降低图像分辨率
-
-### 任务超时
-
-- 增加 `TASK_TIMEOUT` 配置
-- 检查GPU性能
-- 减少 `num_inference_steps`
 
 ## 项目结构
 
 ```
-flask_backend/
-├── app.py              # Flask应用主文件
-├── model_manager.py    # 模型加载和管理
-├── task_queue.py       # 任务队列管理
-├── config.py           # 配置文件
-├── requirements.txt    # 依赖清单
-├── outputs/            # 生成图像存储目录
-└── README.md           # 接口文档
+Z-Image-BackendService/
+├── app.py                    # Flask 应用主文件
+├── model_manager.py          # 模型加载和管理
+├── task_queue.py             # 任务队列管理
+├── config.py                 # 配置文件
+├── requirements.txt          # Python 依赖清单
+├── outputs/                  # 生成图像存储目录
+├── README-BackendService.md  # 后台详细文档
+├── start.sh                  # 一键启动脚本
+├── stop.sh                   # 一键停止脚本
+└── frontend/                 # 前台应用目录
+    ├── app/                  # Next.js App Router
+    ├── components/           # React 组件
+    ├── hooks/                # 自定义 Hooks
+    ├── lib/                  # 工具函数和配置
+    ├── types/                # TypeScript 类型定义
+    ├── public/               # 静态资源
+    ├── package.json
+    ├── tsconfig.json
+    ├── tailwind.config.js
+    ├── next.config.js
+    └── README.md             # 前台详细文档
 ```
+
+## 性能优化建议
+
+1. **模型编译**：在配置中启用 `ENABLE_MODEL_COMPILE=true` 可以加速推理，但首次运行会较慢
+2. **Flash Attention**：默认启用 Flash Attention-2，可提升性能
+3. **队列管理**：根据 GPU 显存调整 `MAX_QUEUE_SIZE`，避免内存溢出
+4. **批量处理**：虽然当前版本不支持批量，但可以通过并发提交多个任务来提高吞吐量
+
+## 浏览器支持
+
+- Chrome/Edge (最新版本)
+- Firefox (最新版本)
+- Safari (最新版本)
+
+**注意**：本应用仅支持桌面端浏览器，移动端浏览器会显示阻止页面。
 
 ## 许可证
 
-本项目基于Z-Image-Turbo模型，请遵循相应的许可证要求。
+本项目基于 Z-Image-Turbo 模型，请遵循相应的许可证要求。
 
 ## 联系方式
 
-如有问题或建议，请提交Issue或Pull Request。
+如有问题或建议，请提交 Issue 或 Pull Request。
 

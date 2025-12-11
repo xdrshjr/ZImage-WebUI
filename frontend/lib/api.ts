@@ -17,21 +17,23 @@ export class ApiConfig {
 
   /**
    * 获取API基础URL
-   * 优先级：环境变量 > localStorage > 默认值
+   * 优先级：localStorage（用户保存的配置）> 环境变量 > 默认值
+   * 初始时读取.env，用户修改后遵循用户修改的配置
    */
   static getBaseUrl(): string {
-    // 优先使用环境变量（在客户端和服务端都可用）
-    const envUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-    if (envUrl) {
-      return envUrl;
-    }
-    
-    // 其次使用localStorage中的配置（仅在客户端）
+    // 优先使用localStorage中的用户配置（仅在客户端）
+    // 如果用户保存过配置，则优先使用用户配置
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
         return stored;
       }
+    }
+    
+    // 其次使用环境变量（在客户端和服务端都可用）
+    const envUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (envUrl) {
+      return envUrl;
     }
     
     // 最后使用默认值

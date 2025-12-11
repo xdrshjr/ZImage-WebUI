@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,6 +25,13 @@ export const SettingsDialog = () => {
     useApiConfig();
   const [url, setUrl] = useState(baseUrl);
   const [isOpen, setIsOpen] = useState(false);
+
+  // 当对话框打开时，同步最新的 baseUrl 到 url 状态
+  useEffect(() => {
+    if (isOpen) {
+      setUrl(baseUrl);
+    }
+  }, [isOpen, baseUrl]);
 
   const handleTest = async () => {
     if (!isValidUrl(url)) {

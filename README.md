@@ -38,30 +38,16 @@ The system adopts a frontend-backend separation architecture, supporting task qu
 
 ## ✨ Features
 
-### Frontend Features
+### Core Image Generation
 
-- ✅ **Apple-Style Design**: Clean and elegant UI design following Apple's design language
-- ✅ **Mobile Blocking**: Desktop-only access with friendly prompts for mobile devices
-- ✅ **Backend Service Configuration**: Configurable backend service IP and port with connection testing
-- ✅ **Text-to-Image Generation**: Support for batch generation of multiple images (1-4 images)
-- ✅ **Custom Parameters**: Support for image size, inference steps, random seed, and other parameter settings
-- ✅ **Prompt Enhancement**: Template library and prompt enhancement features
-- ✅ **Task Status Tracking**: Real-time polling of task status, displaying queue position and progress
-- ✅ **Image Preview & Download**: Support for image preview and download
-- ✅ **Error Handling**: Comprehensive error prompts and exception handling
-- ✅ **Responsive Design**: Adapted to different desktop screen sizes
+- ✅ **AI Image Generation**: Powered by Z-Image-Turbo model for high-quality text-to-image generation
+- ✅ **Flexible Parameters**: Customizable image dimensions (width/height), inference steps (1-50), and random seed control
+- ✅ **Batch Generation**: Generate multiple images (1-4) in a single request
+- ✅ **Fast Inference**: Optimized for speed with GPU acceleration and memory persistence
+- ✅ **High Quality Output**: Produces professional-quality images suitable for various use cases
 
-### Backend Features
 
-- ✅ **Model Memory Persistence**: Model loaded once at startup and kept in GPU memory globally
-- ✅ **Task Queue Mechanism**: Thread-safe task queue supporting concurrent requests
-- ✅ **Status Tracking**: Comprehensive task status tracking and query endpoints
-- ✅ **Error Handling**: Complete error handling and logging
-- ✅ **GPU Monitoring**: Support for GPU usage monitoring
-- ✅ **Queue Management**: Task timeout and queue management mechanisms
-- ✅ **Unified API**: Unified JSON API response format
-
-### 🎯 Intelligent Slide Generation
+### Intelligent Slide Generation
 
 The system includes an **AI-powered presentation generator** that creates visually appealing, content-rich slides from textual input using Python and LangGraph.
 

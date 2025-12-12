@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import {
@@ -28,6 +29,8 @@ export const ParameterPanel = ({
   onParamsChange,
   onImageCountChange,
 }: ParameterPanelProps) => {
+  const { t } = useTranslation();
+  
   const handleSizePreset = (preset: typeof IMAGE_SIZE_PRESETS[number]) => {
     onParamsChange({
       ...params,
@@ -38,11 +41,11 @@ export const ParameterPanel = ({
 
   return (
     <div className="space-y-4 p-6 bg-card border rounded-lg">
-      <h3 className="text-lg font-semibold mb-4">生成参数</h3>
+      <h3 className="text-lg font-semibold mb-4">{t('parameters.title')}</h3>
 
       {/* 图片数量 */}
       <div className="space-y-2">
-        <Label htmlFor="image-count">图片数量</Label>
+        <Label htmlFor="image-count">{t('parameters.imageCount')}</Label>
         <Select
           value={imageCount.toString()}
           onValueChange={(value) => onImageCountChange(parseInt(value))}
@@ -53,7 +56,7 @@ export const ParameterPanel = ({
           <SelectContent>
             {IMAGE_COUNT_OPTIONS.map((count) => (
               <SelectItem key={count} value={count.toString()}>
-                {count} 张
+                {count} {t('parameters.imageCountUnit')}
               </SelectItem>
             ))}
           </SelectContent>
@@ -62,7 +65,7 @@ export const ParameterPanel = ({
 
       {/* 图片尺寸预设 */}
       <div className="space-y-2">
-        <Label>图片尺寸</Label>
+        <Label>{t('parameters.imageSize')}</Label>
         <Select
           value={`${params.width}x${params.height}`}
           onValueChange={(value) => {
@@ -78,12 +81,12 @@ export const ParameterPanel = ({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {IMAGE_SIZE_PRESETS.map((preset) => (
+            {IMAGE_SIZE_PRESETS.map((preset, index) => (
               <SelectItem
                 key={preset.label}
                 value={`${preset.width}x${preset.height}`}
               >
-                {preset.label}
+                {t(`sizePresets.${['square', 'landscape', 'portrait', 'widescreen'][index]}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -93,7 +96,7 @@ export const ParameterPanel = ({
       {/* 自定义尺寸 */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="width">宽度</Label>
+          <Label htmlFor="width">{t('parameters.width')}</Label>
           <Input
             id="width"
             type="number"
@@ -109,7 +112,7 @@ export const ParameterPanel = ({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="height">高度</Label>
+          <Label htmlFor="height">{t('parameters.height')}</Label>
           <Input
             id="height"
             type="number"
@@ -128,7 +131,7 @@ export const ParameterPanel = ({
 
       {/* 推理步数 */}
       <div className="space-y-2">
-        <Label htmlFor="steps">推理步数</Label>
+        <Label htmlFor="steps">{t('parameters.inferenceSteps')}</Label>
         <Input
           id="steps"
           type="number"
@@ -144,18 +147,21 @@ export const ParameterPanel = ({
           }
         />
         <p className="text-xs text-muted-foreground">
-          范围: {INFERENCE_STEPS_RANGE.min}-{INFERENCE_STEPS_RANGE.max}，数值越大质量越好但速度越慢
+          {t('parameters.inferenceStepsHint', { 
+            min: INFERENCE_STEPS_RANGE.min, 
+            max: INFERENCE_STEPS_RANGE.max 
+          })}
         </p>
       </div>
 
       {/* 随机种子 */}
       <div className="space-y-2">
-        <Label htmlFor="seed">随机种子（可选）</Label>
+        <Label htmlFor="seed">{t('parameters.seed')}</Label>
         <Input
           id="seed"
           type="number"
           min={0}
-          placeholder="留空则随机生成"
+          placeholder={t('parameters.seedPlaceholder')}
           value={params.seed || ''}
           onChange={(e) =>
             onParamsChange({
@@ -165,7 +171,7 @@ export const ParameterPanel = ({
           }
         />
         <p className="text-xs text-muted-foreground">
-          相同的种子和提示词会生成相同的图像
+          {t('parameters.seedHint')}
         </p>
       </div>
     </div>

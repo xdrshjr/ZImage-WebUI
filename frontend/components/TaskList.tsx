@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { ImageIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { TaskItem } from './TaskItem';
 import type { TaskListItem } from '@/types';
 import { TaskStatus } from '@/types';
@@ -14,6 +15,8 @@ interface TaskListProps {
  * 任务列表组件
  */
 export const TaskList = ({ tasks }: TaskListProps) => {
+  const { t } = useTranslation();
+  
   const sortedTasks = useMemo(() => {
     return [...tasks].sort((a, b) => {
       // 按状态排序：processing > pending > completed > failed
@@ -33,16 +36,16 @@ export const TaskList = ({ tasks }: TaskListProps) => {
   if (tasks.length === 0) {
     return (
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold">任务列表</h2>
+        <h2 className="text-xl font-semibold">{t('taskList.title')}</h2>
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <div className="rounded-full bg-primary/10 p-4 mb-4">
             <ImageIcon className="h-8 w-8 text-primary" />
           </div>
           <p className="text-sm text-muted-foreground">
-            这里会产生图像生成结果
+            {t('taskList.empty')}
           </p>
           <p className="text-xs text-muted-foreground mt-2">
-            提交生成任务后，结果将显示在这里
+            {t('taskList.emptyHint')}
           </p>
         </div>
       </div>
@@ -51,7 +54,7 @@ export const TaskList = ({ tasks }: TaskListProps) => {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold">任务列表</h2>
+      <h2 className="text-xl font-semibold">{t('taskList.title')}</h2>
       <div className="space-y-3">
         {sortedTasks.map((task) => (
           <TaskItem key={task.taskId} task={task} />

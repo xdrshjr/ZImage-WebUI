@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
 import { Textarea } from '@/components/ui/textarea';
 import { PromptEnhancer } from './PromptEnhancer';
 
@@ -17,11 +18,13 @@ export const PromptInput = ({
   onChange,
   onEnhance,
 }: PromptInputProps) => {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <label htmlFor="prompt" className="text-sm font-medium">
-          提示词
+          {t('prompt.label')}
         </label>
         <PromptEnhancer
           currentPrompt={value}
@@ -33,13 +36,13 @@ export const PromptInput = ({
       </div>
       <Textarea
         id="prompt"
-        placeholder="输入您想要生成的图像描述，例如：A beautiful sunset over the ocean..."
+        placeholder={t('prompt.placeholder')}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="min-h-[120px] resize-none"
       />
       <p className="text-xs text-muted-foreground">
-        描述越详细，生成的图像质量越好
+        {t('prompt.hint')}
       </p>
     </div>
   );

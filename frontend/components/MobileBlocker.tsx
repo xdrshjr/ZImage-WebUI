@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { isMobileDevice } from '@/lib/utils';
 import { Monitor } from 'lucide-react';
 
@@ -8,6 +9,7 @@ import { Monitor } from 'lucide-react';
  * 移动端阻止组件
  */
 export const MobileBlocker = ({ children }: { children: React.ReactNode }) => {
+  const { t } = useTranslation();
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -34,10 +36,10 @@ export const MobileBlocker = ({ children }: { children: React.ReactNode }) => {
           </div>
           <div className="space-y-2">
             <h1 className="text-2xl font-semibold text-foreground">
-              本应用仅支持桌面端访问
+              {t('mobile.title')}
             </h1>
             <p className="text-muted-foreground">
-              请使用电脑浏览器打开以获得最佳体验
+              {t('mobile.description')}
             </p>
           </div>
         </div>

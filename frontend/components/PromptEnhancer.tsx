@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Sparkles, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { enhancePromptWithLLM } from '@/lib/llm';
 import { logger } from '@/lib/logger';
@@ -19,32 +20,33 @@ export const PromptEnhancer = ({
   currentPrompt,
   onEnhance,
 }: PromptEnhancerProps) => {
+  const { t } = useTranslation();
   const [isEnhancing, setIsEnhancing] = useState(false);
 
   const handleEnhancePrompt = async () => {
     if (!currentPrompt.trim()) {
-      toast.error('请先输入提示词');
-      logger.warn('润色失败：提示词为空');
+      toast.error(t('prompt.emptyError'));
+      logger.warn('Prompt enhancement failed: empty prompt');
       return;
     }
 
     setIsEnhancing(true);
-    logger.info('开始润色提示词', { promptLength: currentPrompt.length });
+    logger.info('Starting prompt enhancement', { promptLength: currentPrompt.length });
 
     try {
       const enhanced = await enhancePromptWithLLM(currentPrompt.trim());
       onEnhance(enhanced);
-      toast.success('提示词已润色');
-      logger.info('润色成功', {
+      toast.success(t('prompt.enhanceSuccess'));
+      logger.info('Prompt enhancement successful', {
         originalLength: currentPrompt.length,
         enhancedLength: enhanced.length,
       });
     } catch (error: any) {
-      logger.error('润色失败', {
+      logger.error('Prompt enhancement failed', {
         error: error.message,
         promptLength: currentPrompt.length,
       });
-      toast.error(error.message || '润色失败，请稍后重试');
+      toast.error(error.message || t('prompt.enhanceError'));
     } finally {
       setIsEnhancing(false);
     }
@@ -61,12 +63,12 @@ export const PromptEnhancer = ({
       {isEnhancing ? (
         <>
           <Loader2 className="h-4 w-4 animate-spin" />
-          润色中...
+          {t('prompt.enhancing')}
         </>
       ) : (
         <>
           <Sparkles className="h-4 w-4" />
-          润色
+          {t('prompt.enhance')}
         </>
       )}
     </Button>

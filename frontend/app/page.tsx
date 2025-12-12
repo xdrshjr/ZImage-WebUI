@@ -2,8 +2,11 @@
 
 import { useState, useMemo } from 'react';
 import { Wand2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import '@/lib/i18n/config'; // 初始化 i18n
 import { MobileBlocker } from '@/components/MobileBlocker';
 import { SettingsDialog } from '@/components/SettingsDialog';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { PromptInput } from '@/components/PromptInput';
 import { ParameterPanel } from '@/components/ParameterPanel';
 import { TaskList } from '@/components/TaskList';
@@ -15,6 +18,7 @@ import { TaskStatus } from '@/types';
 import { INFERENCE_STEPS_RANGE } from '@/lib/constants';
 
 export default function Home() {
+  const { t } = useTranslation();
   const [prompt, setPrompt] = useState('');
   const [imageCount, setImageCount] = useState(1);
   const [params, setParams] = useState<GenerateParams>({
@@ -90,13 +94,16 @@ export default function Home() {
                   <Wand2 className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-semibold">Z-Image 图像生成</h1>
+                  <h1 className="text-xl font-semibold">{t('header.title')}</h1>
                   <p className="text-xs text-muted-foreground">
-                    AI 驱动的图像生成工具
+                    {t('header.subtitle')}
                   </p>
                 </div>
               </div>
-              <SettingsDialog />
+              <div className="flex items-center gap-2">
+                <LanguageSwitcher />
+                <SettingsDialog />
+              </div>
             </div>
           </div>
         </header>
@@ -132,12 +139,12 @@ export default function Home() {
                 {isGenerating ? (
                   <>
                     <span className="animate-spin mr-2">⏳</span>
-                    生成中...
+                    {t('button.generating')}
                   </>
                 ) : (
                   <>
                     <Wand2 className="h-5 w-5 mr-2" />
-                    开始生成
+                    {t('button.generate')}
                   </>
                 )}
               </Button>
@@ -154,7 +161,7 @@ export default function Home() {
                     onClick={clearTasks}
                     className="w-full mt-4"
                   >
-                    清空任务列表
+                    {t('button.clearTasks')}
                   </Button>
                 )}
               </div>

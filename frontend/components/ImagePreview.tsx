@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { X, Download } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
 import type { TaskListItem } from '@/types';
@@ -22,6 +23,7 @@ export const ImagePreview = ({
   task,
   onClose,
 }: ImagePreviewProps) => {
+  const { t } = useTranslation();
   // 键盘快捷键：ESC关闭
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -43,10 +45,10 @@ export const ImagePreview = ({
       const filename = `${task.prompt.slice(0, 30).replace(/[^a-z0-9]/gi, '_')}_${task.taskId.slice(0, 8)}.png`;
       downloadFile(url, filename);
       URL.revokeObjectURL(url);
-      toast.success('图片已下载');
+      toast.success(t('toast.imageDownloaded'));
     } catch (error: any) {
       console.error('下载失败:', error);
-      toast.error('下载失败');
+      toast.error(t('toast.downloadFailed'));
     }
   };
 
@@ -65,14 +67,14 @@ export const ImagePreview = ({
             <h3 className="text-lg font-semibold truncate">{task.prompt}</h3>
             <p className="text-sm text-muted-foreground mt-1">
               {task.params.width}×{task.params.height} •{' '}
-              {task.params.numInferenceSteps} 步
-              {task.params.seed !== null && ` • 种子: ${task.params.seed}`}
+              {task.params.numInferenceSteps} {t('taskInfo.steps')}
+              {task.params.seed !== null && ` • ${t('taskInfo.seed')}: ${task.params.seed}`}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handleDownload}>
               <Download className="h-4 w-4 mr-2" />
-              下载
+              {t('button.download')}
             </Button>
             <Button
               variant="ghost"
@@ -81,7 +83,7 @@ export const ImagePreview = ({
               className="h-9 w-9"
             >
               <X className="h-5 w-5" />
-              <span className="sr-only">关闭</span>
+              <span className="sr-only">{t('button.close')}</span>
             </Button>
           </div>
         </div>

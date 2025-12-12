@@ -6,8 +6,8 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Z-Image 图像生成',
-  description: '基于 AI 的图像生成工具',
+  title: 'Z-Image Generator',
+  description: 'AI-Powered Image Generation Tool',
 };
 
 export default function RootLayout({

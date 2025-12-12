@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Loader2, CheckCircle2, XCircle, Clock, Image as ImageIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { ImagePreview } from './ImagePreview';
 import { api } from '@/lib/api';
@@ -19,6 +20,7 @@ interface TaskItemProps {
  * 任务项组件
  */
 export const TaskItem = ({ task }: TaskItemProps) => {
+  const { t } = useTranslation();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isLoadingImage, setIsLoadingImage] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -40,7 +42,7 @@ export const TaskItem = ({ task }: TaskItemProps) => {
       setImageUrl(url);
     } catch (error: any) {
       console.error('加载图片失败:', error);
-      toast.error('加载图片失败');
+      toast.error(t('toast.loadImageFailed'));
     } finally {
       setIsLoadingImage(false);
     }
@@ -64,13 +66,15 @@ export const TaskItem = ({ task }: TaskItemProps) => {
   const getStatusText = () => {
     switch (task.status) {
       case TaskStatus.PENDING:
-        return `等待中 (队列位置: ${task.queuePosition})`;
+        return t('taskStatus.pending', { position: task.queuePosition });
       case TaskStatus.PROCESSING:
-        return '生成中...';
+        return t('taskStatus.processing');
       case TaskStatus.COMPLETED:
-        return '已完成';
+        return t('taskStatus.completed');
       case TaskStatus.FAILED:
-        return `失败: ${task.errorMessage || '未知错误'}`;
+        return t('taskStatus.failed', { 
+          message: task.errorMessage || t('taskStatus.unknownError') 
+        });
       default:
         return task.status;
     }
@@ -127,7 +131,7 @@ export const TaskItem = ({ task }: TaskItemProps) => {
                   className="flex-shrink-0"
                 >
                   <ImageIcon className="h-4 w-4 mr-2" />
-                  预览
+                  {t('button.preview')}
                 </Button>
               )}
             </div>
@@ -138,11 +142,11 @@ export const TaskItem = ({ task }: TaskItemProps) => {
                 {task.params.width}×{task.params.height}
               </span>
               <span>•</span>
-              <span>{task.params.numInferenceSteps} 步</span>
+              <span>{task.params.numInferenceSteps} {t('taskInfo.steps')}</span>
               {task.params.seed !== null && (
                 <>
                   <span>•</span>
-                  <span>种子: {task.params.seed}</span>
+                  <span>{t('taskInfo.seed')}: {task.params.seed}</span>
                 </>
               )}
             </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Settings } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -21,6 +22,7 @@ import toast from 'react-hot-toast';
  * 设置对话框组件
  */
 export const SettingsDialog = () => {
+  const { t } = useTranslation();
   const { baseUrl, setBaseUrl, testConnection, isTesting, testResult } =
     useApiConfig();
   const [url, setUrl] = useState(baseUrl);
@@ -35,21 +37,21 @@ export const SettingsDialog = () => {
 
   const handleTest = async () => {
     if (!isValidUrl(url)) {
-      toast.error('请输入有效的URL地址');
+      toast.error(t('settings.invalidUrl'));
       return;
     }
 
     const result = await testConnection(url);
     if (result) {
-      toast.success('连接成功！');
+      toast.success(t('toast.connectionSuccess'));
     } else {
-      toast.error('连接失败，请检查配置');
+      toast.error(t('toast.connectionFailed'));
     }
   };
 
   const handleSave = async () => {
     if (!isValidUrl(url)) {
-      toast.error('请输入有效的URL地址');
+      toast.error(t('settings.invalidUrl'));
       return;
     }
 
@@ -57,7 +59,7 @@ export const SettingsDialog = () => {
     const baseUrlClean = extractBaseUrl(url);
     setBaseUrl(baseUrlClean);
     setIsOpen(false);
-    toast.success('配置已保存');
+    toast.success(t('settings.savedSuccess'));
   };
 
   return (
@@ -65,24 +67,24 @@ export const SettingsDialog = () => {
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon" className="h-9 w-9">
           <Settings className="h-5 w-5" />
-          <span className="sr-only">设置</span>
+          <span className="sr-only">{t('settings.title')}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>后台服务配置</DialogTitle>
+          <DialogTitle>{t('settings.title')}</DialogTitle>
           <DialogDescription>
-            配置图像生成服务的IP地址和端口
+            {t('settings.description')}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <label htmlFor="api-url" className="text-sm font-medium">
-              服务地址
+              {t('settings.serviceUrl')}
             </label>
             <Input
               id="api-url"
-              placeholder="http://localhost:5000"
+              placeholder={t('settings.urlPlaceholder')}
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               onKeyDown={(e) => {
@@ -92,7 +94,7 @@ export const SettingsDialog = () => {
               }}
             />
             <p className="text-xs text-muted-foreground">
-              请输入完整的URL地址，例如: http://192.168.1.100:5000
+              {t('settings.urlHint')}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -102,7 +104,7 @@ export const SettingsDialog = () => {
               disabled={isTesting}
               className="flex-1"
             >
-              {isTesting ? '测试中...' : '测试连接'}
+              {isTesting ? t('button.testing') : t('button.test')}
             </Button>
             {testResult !== null && (
               <div
@@ -110,16 +112,16 @@ export const SettingsDialog = () => {
                   testResult ? 'text-success' : 'text-destructive'
                 }`}
               >
-                {testResult ? '✓ 连接成功' : '✗ 连接失败'}
+                {testResult ? t('settings.connectionSuccess') : t('settings.connectionFailed')}
               </div>
             )}
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setIsOpen(false)}>
-            取消
+            {t('button.cancel')}
           </Button>
-          <Button onClick={handleSave}>保存</Button>
+          <Button onClick={handleSave}>{t('button.save')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

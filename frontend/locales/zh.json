@@ -1,0 +1,159 @@
+{
+  "app": {
+    "title": "Z-Image 图像生成",
+    "description": "AI 驱动的图像生成工具",
+    "subtitle": "基于 AI 的图像生成工具"
+  },
+  "header": {
+    "title": "Z-Image 图像生成",
+    "subtitle": "AI 驱动的图像生成工具"
+  },
+  "prompt": {
+    "label": "提示词",
+    "placeholder": "输入您想要生成的图像描述，例如：A beautiful sunset over the ocean...",
+    "hint": "描述越详细，生成的图像质量越好",
+    "enhance": "润色",
+    "enhancing": "润色中...",
+    "enhanceSuccess": "提示词已润色",
+    "enhanceError": "润色失败，请稍后重试",
+    "emptyError": "请先输入提示词"
+  },
+  "parameters": {
+    "title": "生成参数",
+    "imageCount": "图片数量",
+    "imageCountUnit": "张",
+    "imageSize": "图片尺寸",
+    "width": "宽度",
+    "height": "高度",
+    "inferenceSteps": "推理步数",
+    "inferenceStepsHint": "范围: {{min}}-{{max}}，数值越大质量越好但速度越慢",
+    "seed": "随机种子（可选）",
+    "seedPlaceholder": "留空则随机生成",
+    "seedHint": "相同的种子和提示词会生成相同的图像"
+  },
+  "sizePresets": {
+    "square": "正方形 (1024×1024)",
+    "landscape": "横向 (1280×768)",
+    "portrait": "纵向 (768×1280)",
+    "widescreen": "宽屏 (1920×1080)"
+  },
+  "button": {
+    "generate": "开始生成",
+    "generating": "生成中...",
+    "preview": "预览",
+    "download": "下载",
+    "close": "关闭",
+    "cancel": "取消",
+    "save": "保存",
+    "test": "测试连接",
+    "testing": "测试中...",
+    "clearTasks": "清空任务列表"
+  },
+  "taskList": {
+    "title": "任务列表",
+    "empty": "这里会产生图像生成结果",
+    "emptyHint": "提交生成任务后，结果将显示在这里"
+  },
+  "taskStatus": {
+    "pending": "等待中 (队列位置: {{position}})",
+    "processing": "生成中...",
+    "completed": "已完成",
+    "failed": "失败: {{message}}",
+    "unknownError": "未知错误"
+  },
+  "taskInfo": {
+    "steps": "步",
+    "seed": "种子"
+  },
+  "settings": {
+    "title": "后台服务配置",
+    "description": "配置图像生成服务的IP地址和端口",
+    "serviceUrl": "服务地址",
+    "urlPlaceholder": "http://localhost:5000",
+    "urlHint": "请输入完整的URL地址，例如: http://192.168.1.100:5000",
+    "connectionSuccess": "✓ 连接成功",
+    "connectionFailed": "✗ 连接失败",
+    "savedSuccess": "配置已保存",
+    "invalidUrl": "请输入有效的URL地址"
+  },
+  "toast": {
+    "connectionSuccess": "连接成功！",
+    "connectionFailed": "连接失败，请检查配置",
+    "generateSuccess": "成功提交 {{count}} 个生成任务",
+    "generateError": "生成任务提交失败",
+    "generating": "正在生成中，请稍候...",
+    "promptRequired": "请输入提示词",
+    "imageCountError": "图片数量必须在1-4之间",
+    "imageDownloaded": "图片已下载",
+    "downloadFailed": "下载失败",
+    "loadImageFailed": "加载图片失败"
+  },
+  "mobile": {
+    "title": "本应用仅支持桌面端访问",
+    "description": "请使用电脑浏览器打开以获得最佳体验"
+  },
+  "imagePreview": {
+    "close": "关闭"
+  },
+  "language": {
+    "switch": "切换语言",
+    "chinese": "中文",
+    "english": "English"
+  },
+  "taskType": {
+    "image": "图像生成",
+    "slide": "幻灯片制作"
+  },
+  "slide": {
+    "baseText": "内容/主题",
+    "baseTextPlaceholder": "输入您的演示主题或内容，例如：人工智能简介及其在现代技术中的应用...",
+    "baseTextHint": "内容越详细，生成的幻灯片质量越好",
+    "numSlides": "幻灯片数量",
+    "numSlidesUnit": "张",
+    "aspectRatio": "幻灯片比例",
+    "style": "视觉风格",
+    "contentRichness": "内容详细度",
+    "parameters": "幻灯片参数"
+  },
+  "slideAspectRatio": {
+    "16:9": "16:9 (宽屏)",
+    "4:3": "4:3 (标准)",
+    "16:10": "16:10 (宽屏)"
+  },
+  "slideStyle": {
+    "professional": "专业",
+    "creative": "创意",
+    "minimal": "简约",
+    "academic": "学术"
+  },
+  "slideContentRichness": {
+    "concise": "简洁",
+    "moderate": "适中",
+    "detailed": "详细"
+  },
+  "slideTaskList": {
+    "title": "幻灯片任务",
+    "empty": "这里会显示生成的幻灯片",
+    "emptyHint": "提交幻灯片生成任务后，结果将显示在这里",
+    "slidesGenerated": "已生成 {{count}} 张幻灯片",
+    "downloadPdf": "下载 PDF",
+    "downloadSlide": "下载第 {{number}} 张",
+    "viewSlide": "查看第 {{number}} 张"
+  },
+  "slideTaskStatus": {
+    "pending": "等待中 (队列位置: {{position}})",
+    "processing": "生成中...",
+    "completed": "已完成",
+    "failed": "失败: {{message}}"
+  },
+  "slideToast": {
+    "generateSuccess": "幻灯片生成任务已提交",
+    "generateError": "提交幻灯片生成任务失败",
+    "generating": "正在生成幻灯片，请稍候...",
+    "baseTextRequired": "请输入内容/主题",
+    "pdfDownloaded": "PDF已下载",
+    "slideDownloaded": "幻灯片已下载",
+    "downloadFailed": "下载失败"
+  }
+}
+

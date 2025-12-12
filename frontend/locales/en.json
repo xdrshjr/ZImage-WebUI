@@ -1,0 +1,159 @@
+{
+  "app": {
+    "title": "Z-Image Generator",
+    "description": "AI-Powered Image Generation Tool",
+    "subtitle": "AI-Powered Image Generation Tool"
+  },
+  "header": {
+    "title": "Z-Image Generator",
+    "subtitle": "AI-Powered Image Generation Tool"
+  },
+  "prompt": {
+    "label": "Prompt",
+    "placeholder": "Enter a description of the image you want to generate, e.g.: A beautiful sunset over the ocean...",
+    "hint": "More detailed descriptions result in better image quality",
+    "enhance": "Enhance",
+    "enhancing": "Enhancing...",
+    "enhanceSuccess": "Prompt enhanced successfully",
+    "enhanceError": "Failed to enhance prompt, please try again later",
+    "emptyError": "Please enter a prompt first"
+  },
+  "parameters": {
+    "title": "Generation Parameters",
+    "imageCount": "Image Count",
+    "imageCountUnit": "image(s)",
+    "imageSize": "Image Size",
+    "width": "Width",
+    "height": "Height",
+    "inferenceSteps": "Inference Steps",
+    "inferenceStepsHint": "Range: {{min}}-{{max}}, higher values produce better quality but slower generation",
+    "seed": "Random Seed (Optional)",
+    "seedPlaceholder": "Leave empty for random",
+    "seedHint": "Same seed and prompt will generate the same image"
+  },
+  "sizePresets": {
+    "square": "Square (1024×1024)",
+    "landscape": "Landscape (1280×768)",
+    "portrait": "Portrait (768×1280)",
+    "widescreen": "Widescreen (1920×1080)"
+  },
+  "button": {
+    "generate": "Generate",
+    "generating": "Generating...",
+    "preview": "Preview",
+    "download": "Download",
+    "close": "Close",
+    "cancel": "Cancel",
+    "save": "Save",
+    "test": "Test Connection",
+    "testing": "Testing...",
+    "clearTasks": "Clear Task List"
+  },
+  "taskList": {
+    "title": "Task List",
+    "empty": "Generated images will appear here",
+    "emptyHint": "Submit a generation task and results will be displayed here"
+  },
+  "taskStatus": {
+    "pending": "Pending (Queue Position: {{position}})",
+    "processing": "Processing...",
+    "completed": "Completed",
+    "failed": "Failed: {{message}}",
+    "unknownError": "Unknown error"
+  },
+  "taskInfo": {
+    "steps": "steps",
+    "seed": "seed"
+  },
+  "settings": {
+    "title": "Backend Service Configuration",
+    "description": "Configure the IP address and port for the image generation service",
+    "serviceUrl": "Service URL",
+    "urlPlaceholder": "http://localhost:5000",
+    "urlHint": "Enter the complete URL, e.g.: http://192.168.1.100:5000",
+    "connectionSuccess": "✓ Connected",
+    "connectionFailed": "✗ Connection Failed",
+    "savedSuccess": "Configuration saved",
+    "invalidUrl": "Please enter a valid URL"
+  },
+  "toast": {
+    "connectionSuccess": "Connected successfully!",
+    "connectionFailed": "Connection failed, please check configuration",
+    "generateSuccess": "Successfully submitted {{count}} generation task(s)",
+    "generateError": "Failed to submit generation task",
+    "generating": "Generating, please wait...",
+    "promptRequired": "Please enter a prompt",
+    "imageCountError": "Image count must be between 1-4",
+    "imageDownloaded": "Image downloaded",
+    "downloadFailed": "Download failed",
+    "loadImageFailed": "Failed to load image"
+  },
+  "mobile": {
+    "title": "Desktop Only",
+    "description": "Please use a desktop browser for the best experience"
+  },
+  "imagePreview": {
+    "close": "Close"
+  },
+  "language": {
+    "switch": "Switch Language",
+    "chinese": "中文",
+    "english": "English"
+  },
+  "taskType": {
+    "image": "Image Generation",
+    "slide": "Slide Generation"
+  },
+  "slide": {
+    "baseText": "Content/Topic",
+    "baseTextPlaceholder": "Enter the topic or content for your presentation, e.g.: Introduction to Artificial Intelligence...",
+    "baseTextHint": "More detailed content will generate better slides",
+    "numSlides": "Number of Slides",
+    "numSlidesUnit": "slide(s)",
+    "aspectRatio": "Aspect Ratio",
+    "style": "Visual Style",
+    "contentRichness": "Content Detail",
+    "parameters": "Slide Parameters"
+  },
+  "slideAspectRatio": {
+    "16:9": "16:9 (Widescreen)",
+    "4:3": "4:3 (Standard)",
+    "16:10": "16:10 (Wide)"
+  },
+  "slideStyle": {
+    "professional": "Professional",
+    "creative": "Creative",
+    "minimal": "Minimal",
+    "academic": "Academic"
+  },
+  "slideContentRichness": {
+    "concise": "Concise",
+    "moderate": "Moderate",
+    "detailed": "Detailed"
+  },
+  "slideTaskList": {
+    "title": "Slide Tasks",
+    "empty": "Generated slides will appear here",
+    "emptyHint": "Submit a slide generation task and results will be displayed here",
+    "slidesGenerated": "Generated {{count}} slide(s)",
+    "downloadPdf": "Download PDF",
+    "downloadSlide": "Download Slide {{number}}",
+    "viewSlide": "View Slide {{number}}"
+  },
+  "slideTaskStatus": {
+    "pending": "Pending (Queue Position: {{position}})",
+    "processing": "Generating slides...",
+    "completed": "Completed",
+    "failed": "Failed: {{message}}"
+  },
+  "slideToast": {
+    "generateSuccess": "Slide generation task submitted successfully",
+    "generateError": "Failed to submit slide generation task",
+    "generating": "Generating slides, please wait...",
+    "baseTextRequired": "Please enter content/topic",
+    "pdfDownloaded": "PDF downloaded",
+    "slideDownloaded": "Slide downloaded",
+    "downloadFailed": "Download failed"
+  }
+}
+

@@ -6,6 +6,10 @@ import type {
   TaskDetail,
   HealthCheckResponse,
   SystemStatusResponse,
+  SlideGenerateParams,
+  SlideGenerateResponse,
+  SlideTaskDetail,
+  SlideSystemStatusResponse,
 } from '@/types';
 import { DEFAULT_API_BASE_URL, STORAGE_KEYS } from './constants';
 
@@ -160,6 +164,87 @@ export const api = {
   async getSystemStatus(): Promise<SystemStatusResponse> {
     const response = await apiClient.get<ApiResponse<SystemStatusResponse>>(
       '/api/status'
+    );
+    if (response.data.code !== 200) {
+      throw new Error(response.data.message);
+    }
+    return response.data.data;
+  },
+
+  // ========== Slide Generation APIs ==========
+
+  /**
+   * 提交Slide生成任务
+   */
+  async generateSlide(params: SlideGenerateParams): Promise<SlideGenerateResponse> {
+    const response = await apiClient.post<ApiResponse<SlideGenerateResponse>>(
+      '/api/slide/generate',
+      params
+    );
+    if (response.data.code !== 200) {
+      throw new Error(response.data.message);
+    }
+    return response.data.data;
+  },
+
+  /**
+   * 查询Slide任务状态
+   */
+  async getSlideTaskStatus(taskId: string): Promise<SlideTaskDetail> {
+    const response = await apiClient.get<ApiResponse<SlideTaskDetail>>(
+      `/api/slide/task/${taskId}`
+    );
+    if (response.data.code !== 200) {
+      throw new Error(response.data.message);
+    }
+    return response.data.data;
+  },
+
+  /**
+   * 获取Slide PDF结果
+   */
+  async getSlidePdfResult(taskId: string): Promise<Blob> {
+    const response = await apiClient.get(`/api/slide/result/${taskId}`, {
+      responseType: 'blob',
+    });
+    
+    // 检查是否是JSON错误响应
+    if (response.headers['content-type']?.includes('application/json')) {
+      const text = await response.data.text();
+      const json = JSON.parse(text);
+      throw new Error(json.message || '获取PDF失败');
+    }
+    
+    return response.data;
+  },
+
+  /**
+   * 获取Slide单张图片
+   */
+  async getSlideImage(taskId: string, slideNumber: number): Promise<Blob> {
+    const response = await apiClient.get(
+      `/api/slide/result/${taskId}/image/${slideNumber}`,
+      {
+        responseType: 'blob',
+      }
+    );
+    
+    // 检查是否是JSON错误响应
+    if (response.headers['content-type']?.includes('application/json')) {
+      const text = await response.data.text();
+      const json = JSON.parse(text);
+      throw new Error(json.message || '获取图片失败');
+    }
+    
+    return response.data;
+  },
+
+  /**
+   * 获取Slide系统状态
+   */
+  async getSlideSystemStatus(): Promise<SlideSystemStatusResponse> {
+    const response = await apiClient.get<ApiResponse<SlideSystemStatusResponse>>(
+      '/api/slide/status'
     );
     if (response.data.code !== 200) {
       throw new Error(response.data.message);

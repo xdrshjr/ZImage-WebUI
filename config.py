@@ -46,3 +46,8 @@ DEFAULT_GUIDANCE_SCALE = float(os.getenv("DEFAULT_GUIDANCE_SCALE", "0.0"))
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
+# Slide生成配置
+SLIDE_MAX_QUEUE_SIZE = int(os.getenv("SLIDE_MAX_QUEUE_SIZE", "50"))
+SLIDE_OUTPUT_DIR = Path(os.getenv("SLIDE_OUTPUT_DIR", BASE_DIR / "slide-gen" / "output"))
+ENABLE_SLIDE_GENERATION = os.getenv("ENABLE_SLIDE_GENERATION", "true").lower() == "true"
+

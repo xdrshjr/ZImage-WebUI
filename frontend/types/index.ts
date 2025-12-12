@@ -118,3 +118,102 @@ export interface PromptTemplate {
   description: string;
 }
 
+/**
+ * Slide任务状态枚举
+ */
+export enum SlideTaskStatus {
+  PENDING = 'pending',
+  PROCESSING = 'processing',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+}
+
+/**
+ * Slide生成参数
+ */
+export interface SlideGenerateParams {
+  base_text: string;
+  num_slides?: number;
+  aspect_ratio?: '16:9' | '4:3' | '16:10';
+  style?: 'professional' | 'creative' | 'minimal' | 'academic';
+  content_richness?: 'concise' | 'moderate' | 'detailed';
+}
+
+/**
+ * Slide生成任务响应
+ */
+export interface SlideGenerateResponse {
+  task_id: string;
+  status: SlideTaskStatus;
+  queue_position: number;
+}
+
+/**
+ * Slide任务详情
+ */
+export interface SlideTaskDetail {
+  task_id: string;
+  status: SlideTaskStatus;
+  base_text: string;
+  num_slides: number;
+  aspect_ratio: string;
+  style: string;
+  content_richness: string;
+  created_at: string;
+  started_at?: string;
+  completed_at?: string;
+  queue_position: number;
+  output_path?: string;
+  pdf_path?: string;
+  slide_image_paths?: string[];
+  slides_generated?: number;
+  error_message?: string;
+  errors?: string[];
+}
+
+/**
+ * Slide任务列表项（用于UI显示）
+ */
+export interface SlideTaskListItem {
+  taskId: string;
+  baseText: string;
+  status: SlideTaskStatus;
+  queuePosition: number;
+  createdAt: string;
+  slidesGenerated?: number;
+  pdfAvailable: boolean;
+  slideImageCount: number;
+  errorMessage?: string;
+  params: {
+    numSlides: number;
+    aspectRatio: string;
+    style: string;
+    contentRichness: string;
+  };
+}
+
+/**
+ * Slide系统状态响应
+ */
+export interface SlideSystemStatusResponse {
+  queue: {
+    queue_size: number;
+    max_queue_size: number;
+    pending_tasks: number;
+    processing_tasks: number;
+    completed_tasks: number;
+    failed_tasks: number;
+    total_tasks: number;
+  };
+  generator_ready: boolean;
+  enabled: boolean;
+}
+
+/**
+ * 任务类型枚举
+ */
+export enum TaskType {
+  IMAGE_GENERATION = 'image',
+  SLIDE_GENERATION = 'slide',
+}
+

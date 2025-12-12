@@ -11,6 +11,7 @@ from src.image.generator import ImageGenerator
 from src.image.refiner import ImagePromptRefiner
 from src.renderer.html_renderer import HTMLRenderer
 from src.utils.validators import InputValidator
+from src.utils.template_validator import TemplateValidator
 from src.utils.config import config
 
 logger = logging.getLogger(__name__)
@@ -105,14 +106,18 @@ class SlideGenerationNodes:
         
         try:
             logger.info(f"→ Step 2.1: Generating layout and content")
+            logger.debug(f"Requesting LLM to select appropriate template based on content and slide position")
             
             system_prompt, user_prompt = PromptTemplates.layout_generation_prompt(
                 slide_outline=slide_outline,
                 style=state['style'],
                 content_richness=state['content_richness'],
                 aspect_ratio=state['aspect_ratio'],
-                slide_number=slide_number
+                slide_number=slide_number,
+                total_slides=state['num_slides']
             )
+            
+            logger.debug(f"LLM prompt emphasizes template variety and position-based selection")
             
             response = self.llm_client.generate_json_completion(
                 prompt=user_prompt,
@@ -121,15 +126,32 @@ class SlideGenerationNodes:
                 max_tokens=2000
             )
             
+            # Extract template selection from LLM response
+            llm_selected_template = response.get('template_type', 'title_and_content')
+            logger.debug(f"LLM initially selected template: '{llm_selected_template}'")
+            
+            # Get list of previously used templates for validation
+            previous_templates = [slide.get('template_type', '') for slide in state.get('slides', [])]
+            
+            # Validate and potentially correct template selection
+            validated_template = TemplateValidator.validate_and_enforce_template(
+                selected_template=llm_selected_template,
+                slide_number=slide_number,
+                total_slides=state['num_slides'],
+                previous_templates=previous_templates,
+                slide_title=slide_outline['title']
+            )
+            
             slide_data = {
                 'slide_number': slide_number,
-                'template_type': response.get('template_type', 'title_and_content'),
+                'template_type': validated_template,
                 'layout': response.get('layout', {}),
                 'html_path': None,
                 'image_path': None
             }
             
-            logger.info(f"✓ Layout generated: {slide_data['template_type']} template")
+            logger.info(f"✓ Layout generated successfully")
+            logger.info(f"  Final template: '{validated_template}'")
             logger.info(f"  Content blocks: {len(slide_data['layout'].get('content_blocks', []))}")
             
             # Add slide to state

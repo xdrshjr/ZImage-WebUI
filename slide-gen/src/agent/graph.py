@@ -11,6 +11,7 @@ from src.agent.nodes import SlideGenerationNodes
 from src.renderer.image_exporter import ImageExporter
 from src.renderer.pdf_exporter import PDFExporter
 from src.utils.validators import InputValidator
+from src.utils.template_validator import TemplateValidator
 from src.utils.config import config
 
 logger = logging.getLogger(__name__)
@@ -80,6 +81,9 @@ class SlideGenerationAgent:
         logger.info("=" * 60)
         logger.info("PHASE 3: Final Export")
         logger.info("=" * 60)
+        
+        # Log comprehensive template distribution analysis
+        TemplateValidator.log_template_distribution(state['slides'])
         
         try:
             # Export individual slide images
@@ -222,8 +226,16 @@ class SlideGenerationAgent:
             'errors': []
         }
         
-        # Run workflow
-        final_state = self.workflow.invoke(initial_state)
+        # Run workflow with appropriate recursion limit
+        # Calculate required limit: 1 (outline) + num_slides * 4 (layout/images/html/increment) + 1 (export) + buffer
+        recursion_limit = max(50, num_slides * 5 + 10)
+        
+        logger.debug(f"Setting recursion limit to {recursion_limit} for {num_slides} slides")
+        
+        final_state = self.workflow.invoke(
+            initial_state,
+            config={"recursion_limit": recursion_limit}
+        )
         
         # Prepare result
         result = {
@@ -237,6 +249,13 @@ class SlideGenerationAgent:
         logger.info("=" * 60)
         if result['success']:
             logger.info("✓ SLIDE GENERATION COMPLETED SUCCESSFULLY")
+            logger.info("")
+            logger.info("Generated Slides Overview:")
+            for slide in final_state.get('slides', []):
+                slide_num = slide.get('slide_number', '?')
+                template = slide.get('template_type', 'unknown')
+                title = slide.get('layout', {}).get('title', 'Untitled')
+                logger.info(f"  Slide {slide_num}: [{template}] {title}")
         else:
             logger.info("⚠ SLIDE GENERATION COMPLETED WITH ERRORS")
             for error in result['errors']:

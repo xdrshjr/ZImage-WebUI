@@ -127,15 +127,19 @@ class LLMClient:
         )
         
         try:
-            return json.loads(response)
+            parsed_response = json.loads(response)
+            logger.debug(f"JSON response parsed successfully")
+            return parsed_response
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse JSON response: {response[:200]}...")
             # Try to extract JSON from markdown code block
             if "```json" in response:
                 try:
                     json_str = response.split("```json")[1].split("```")[0].strip()
-                    return json.loads(json_str)
-                except:
-                    pass
+                    parsed_response = json.loads(json_str)
+                    logger.debug(f"Successfully extracted JSON from markdown code block")
+                    return parsed_response
+                except Exception as extract_error:
+                    logger.debug(f"Failed to extract from markdown: {str(extract_error)}")
             raise Exception(f"Failed to parse LLM JSON response: {str(e)}")
 

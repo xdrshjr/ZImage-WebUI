@@ -1,10 +1,25 @@
+<div align="center">
+
+<img src="images/img-logo.png" alt="Z-Image Logo" width="80" height="80" style="border-radius: 50%; object-fit: cover;" />
+
 # Z-Image Image Generation System
 
-An AI image generation system based on the Z-Image-Turbo model, featuring a Flask backend service and a Next.js frontend application, providing a complete image generation solution.
+**An AI image generation system based on the Z-Image-Turbo model, featuring a Flask backend service and a Next.js frontend application, providing a complete image generation solution.**
 
-![img.png](images/img.png)
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-14-black.svg)](https://nextjs.org/)
+[![Flask](https://img.shields.io/badge/Flask-2.0+-green.svg)](https://flask.palletsprojects.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## Project Overview
+### ✨ Professional AI Image Generation at Your Fingertips ✨
+
+| 🎨 Apple-Style Design | ⚡ Lightning Fast | 🔧 Custom Parameters | 📱 Desktop Optimized |
+
+</div>
+
+---
+
+## 📋 Project Overview
 
 Z-Image is a complete AI image generation system consisting of two parts:
 
@@ -13,7 +28,15 @@ Z-Image is a complete AI image generation system consisting of two parts:
 
 The system adopts a frontend-backend separation architecture, supporting task queue management, real-time status tracking, batch generation, and other features suitable for production environment deployment.
 
-## Features
+<div align="center">
+
+![System Architecture](images/img.png)
+
+</div>
+
+---
+
+## ✨ Features
 
 ### Frontend Features
 

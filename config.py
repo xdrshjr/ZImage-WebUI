@@ -4,9 +4,18 @@
 """
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 # 项目根目录
 BASE_DIR = Path(__file__).parent.absolute()
+
+# 加载.env文件（如果存在）
+env_path = BASE_DIR / ".env"
+if env_path.exists():
+    load_dotenv(env_path)
+    print(f"✓ 已加载配置文件: {env_path}")
+else:
+    print(f"⚠ 未找到.env文件: {env_path}，将使用环境变量或默认值")
 
 # GPU配置
 GPU_DEVICE_ID = int(os.getenv("GPU_DEVICE_ID", "0"))
@@ -46,8 +55,31 @@ DEFAULT_GUIDANCE_SCALE = float(os.getenv("DEFAULT_GUIDANCE_SCALE", "0.0"))
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
+# ========================================
 # Slide生成配置
+# ========================================
+# 注意：Slide生成功能需要配置以下API密钥才能正常工作
+# 请通过环境变量设置或直接修改默认值
+
+# 基础配置
 SLIDE_MAX_QUEUE_SIZE = int(os.getenv("SLIDE_MAX_QUEUE_SIZE", "50"))
 SLIDE_OUTPUT_DIR = Path(os.getenv("SLIDE_OUTPUT_DIR", BASE_DIR / "slide-gen" / "output"))
 ENABLE_SLIDE_GENERATION = os.getenv("ENABLE_SLIDE_GENERATION", "true").lower() == "true"
+
+# LLM配置（用于生成幻灯片内容）
+# 必需：SLIDE_LLM_API_KEY - LLM服务的API密钥（如OpenAI API Key）
+SLIDE_LLM_API_KEY = os.getenv("SLIDE_LLM_API_KEY", "")
+SLIDE_LLM_API_URL = os.getenv("SLIDE_LLM_API_URL", "https://api.openai.com/v1/chat/completions")
+SLIDE_LLM_MODEL = os.getenv("SLIDE_LLM_MODEL", "gpt-4")
+
+# 图像生成配置（用于生成幻灯片中的图片）
+# 必需：SLIDE_IMAGE_API_KEY - 图像生成服务的API密钥
+# 必需：SLIDE_IMAGE_API_URL - 图像生成服务的API地址
+SLIDE_IMAGE_API_KEY = os.getenv("SLIDE_IMAGE_API_KEY", "")
+SLIDE_IMAGE_API_URL = os.getenv("SLIDE_IMAGE_API_URL", "")
+SLIDE_IMAGE_MODEL = os.getenv("SLIDE_IMAGE_MODEL", "stable-diffusion-xl")
+
+# 其他设置
+SLIDE_DEFAULT_TIMEOUT = int(os.getenv("SLIDE_DEFAULT_TIMEOUT", "60"))  # API请求超时时间（秒）
+SLIDE_MAX_RETRIES = int(os.getenv("SLIDE_MAX_RETRIES", "3"))  # API请求重试次数
 

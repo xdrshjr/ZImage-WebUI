@@ -3,25 +3,46 @@ Slide Generation Wrapper
 包装slide-gen Agent以供Flask服务调用
 """
 import logging
+import os
 import sys
 from pathlib import Path
 from typing import Dict, Any, Optional
 import traceback
+
+# Import main config first
+import config
+
+# Set environment variables for slide-gen before importing its modules
+# This allows slide-gen to read configuration from the main config.py
+os.environ["LLM_API_KEY"] = config.SLIDE_LLM_API_KEY
+os.environ["LLM_API_URL"] = config.SLIDE_LLM_API_URL
+os.environ["LLM_MODEL"] = config.SLIDE_LLM_MODEL
+os.environ["IMAGE_API_KEY"] = config.SLIDE_IMAGE_API_KEY
+os.environ["IMAGE_API_URL"] = config.SLIDE_IMAGE_API_URL
+os.environ["IMAGE_MODEL"] = config.SLIDE_IMAGE_MODEL
+os.environ["DEFAULT_TIMEOUT"] = str(config.SLIDE_DEFAULT_TIMEOUT)
+os.environ["MAX_RETRIES"] = str(config.SLIDE_MAX_RETRIES)
+
+# Log configuration status for debugging
+_logger = logging.getLogger(__name__)
+_logger.debug(f"Slide配置已设置: LLM_API_KEY={'已设置' if config.SLIDE_LLM_API_KEY else '未设置'}, "
+              f"IMAGE_API_KEY={'已设置' if config.SLIDE_IMAGE_API_KEY else '未设置'}, "
+              f"IMAGE_API_URL={'已设置' if config.SLIDE_IMAGE_API_URL else '未设置'}")
 
 # Add slide-gen to Python path
 slide_gen_path = Path(__file__).parent / "slide-gen"
 if str(slide_gen_path) not in sys.path:
     sys.path.insert(0, str(slide_gen_path))
 
+# Now import slide-gen modules (they will read from the environment variables we just set)
+# NOTE: We import slide_config INSIDE the class to ensure env vars are set first
 try:
     from src.agent.graph import SlideGenerationAgent
     from src.utils.validators import InputValidator
-    from src.utils.config import config as slide_config
 except ImportError as e:
     logging.error(f"Failed to import slide-gen modules: {e}")
     SlideGenerationAgent = None
     InputValidator = None
-    slide_config = None
 
 logger = logging.getLogger(__name__)
 
@@ -42,13 +63,18 @@ class SlideGenerator:
             return
         
         try:
+            # Import slide_config here (after environment variables have been set)
+            from src.utils.config import config as slide_config
+            
             # 验证slide-gen配置
-            if slide_config:
-                valid, error = slide_config.validate()
-                if not valid:
-                    logger.error(f"Slide-gen配置验证失败: {error}")
-                    logger.warning("请检查slide-gen目录下的.env配置文件")
-                    return
+            valid, error = slide_config.validate()
+            if not valid:
+                logger.error(f"Slide生成配置验证失败: {error}")
+                logger.error("请在config.py中配置以下必需的环境变量:")
+                logger.error("  - SLIDE_LLM_API_KEY: LLM服务的API密钥")
+                logger.error("  - SLIDE_IMAGE_API_KEY: 图像生成服务的API密钥")
+                logger.error("  - SLIDE_IMAGE_API_URL: 图像生成服务的API地址")
+                return
             
             # 初始化Agent
             self.agent = SlideGenerationAgent()

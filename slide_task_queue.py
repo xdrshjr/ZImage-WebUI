@@ -156,7 +156,21 @@ class SlideTaskQueueManager:
                                 logger.info(f"  PDF: {Path(task.pdf_path).name}")
                         else:
                             task.status = SlideTaskStatus.FAILED
-                            error = result.get('error', '未知错误')
+                            
+                            # Get error message from result
+                            # First check for 'error' field (single error message)
+                            error = result.get('error')
+                            
+                            # If no single error, check for 'errors' list
+                            if not error:
+                                errors_list = result.get('errors', [])
+                                if errors_list:
+                                    # Join multiple errors with semicolon
+                                    error = '; '.join(errors_list)
+                                else:
+                                    # Fallback to generic message
+                                    error = '幻灯片生成失败，未返回详细错误信息'
+                            
                             task.error_message = error
                             task.errors = result.get('errors', [error])
                             

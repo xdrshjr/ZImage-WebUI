@@ -23,15 +23,47 @@
 
 ### 1. 安装依赖
 
+#### 基础依赖（图像生成服务）
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. 配置环境变量（可选）
+#### Slide生成服务依赖（可选）
 
-创建 `.env` 文件或直接设置环境变量：
+如果需要使用Slide生成功能，需要额外安装：
+
+**方式1: 使用自动安装脚本（推荐）**
 
 ```bash
+# Linux/Mac
+./setup_slide_generation.sh
+
+# Windows
+# 手动执行下面的命令
+```
+
+**方式2: 手动安装**
+
+```bash
+# 安装slide-gen依赖
+pip install -r slide-gen/requirements.txt
+
+# 安装Playwright浏览器（用于HTML到图片转换）
+playwright install chromium
+```
+
+**注意**: Playwright需要下载Chromium浏览器（约150MB），首次安装可能需要一些时间。
+
+### 2. 配置环境变量
+
+在项目根目录创建 `.env` 文件：
+
+```bash
+# ========================================
+# 图像生成服务配置
+# ========================================
+
 # GPU配置
 GPU_DEVICE_ID=0
 CUDA_AVAILABLE=true
@@ -51,7 +83,33 @@ TASK_TIMEOUT=300
 
 # 输出目录
 OUTPUT_DIR=./outputs
+
+# ========================================
+# Slide生成服务配置（可选）
+# ========================================
+
+# 启用Slide生成功能
+ENABLE_SLIDE_GENERATION=true
+
+# LLM配置（用于生成幻灯片内容）
+SLIDE_LLM_API_KEY=your-openai-api-key
+SLIDE_LLM_API_URL=https://api.openai.com/v1/chat/completions
+SLIDE_LLM_MODEL=gpt-4
+
+# 图像生成配置（用于幻灯片中的图片）
+SLIDE_IMAGE_API_KEY=your-image-api-key
+SLIDE_IMAGE_API_URL=http://localhost:5000
+SLIDE_IMAGE_MODEL=Tongyi-MAI/Z-Image-Turbo
+
+# Slide生成其他配置
+SLIDE_MAX_QUEUE_SIZE=50
+SLIDE_DEFAULT_TIMEOUT=60
+SLIDE_MAX_RETRIES=3
 ```
+
+**重要提示**:
+- 如果使用Slide生成功能，必须配置 `SLIDE_LLM_API_KEY`、`SLIDE_IMAGE_API_KEY` 和 `SLIDE_IMAGE_API_URL`
+- 如果不使用Slide生成功能，设置 `ENABLE_SLIDE_GENERATION=false` 即可
 
 ### 3. 启动服务
 
@@ -447,6 +505,152 @@ print(f"GPU使用率: {status['gpu']['memory_usage_percent']}%")
 
 ---
 
+### 6. Slide生成相关API
+
+#### 6.1 提交Slide生成任务
+
+**接口**: `POST /api/slide/generate`
+
+**说明**: 提交幻灯片生成任务，基于文本内容自动生成精美的演示文稿
+
+**请求参数**:
+
+| 参数名 | 类型 | 必填 | 默认值 | 说明 |
+|--------|------|------|--------|------|
+| base_text | string | 是 | - | 源内容/主题 |
+| num_slides | integer | 否 | 6 | 幻灯片数量 (1-50) |
+| aspect_ratio | string | 否 | 16:9 | 幻灯片比例 (16:9, 4:3, 16:10) |
+| style | string | 否 | professional | 视觉风格 (professional, creative, minimal, academic) |
+| content_richness | string | 否 | moderate | 内容详细程度 (concise, moderate, detailed) |
+
+**请求示例**:
+
+```json
+{
+  "base_text": "人工智能的发展历程与未来趋势",
+  "num_slides": 6,
+  "aspect_ratio": "16:9",
+  "style": "professional",
+  "content_richness": "moderate"
+}
+```
+
+**响应示例**:
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "task_id": "slide-550e8400-e29b-41d4-a716-446655440000",
+    "status": "pending",
+    "queue_position": 1
+  }
+}
+```
+
+**cURL示例**:
+
+```bash
+curl -X POST http://localhost:5000/api/slide/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "base_text": "人工智能的发展历程",
+    "num_slides": 6,
+    "aspect_ratio": "16:9",
+    "style": "professional",
+    "content_richness": "moderate"
+  }'
+```
+
+#### 6.2 查询Slide任务状态
+
+**接口**: `GET /api/slide/task/<task_id>`
+
+**说明**: 查询幻灯片生成任务的状态
+
+**响应示例** (已完成):
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "task_id": "slide-550e8400-e29b-41d4-a716-446655440000",
+    "status": "completed",
+    "base_text": "人工智能的发展历程",
+    "num_slides": 6,
+    "slides_generated": 6,
+    "pdf_path": "/path/to/output/final_presentation.pdf",
+    "created_at": "2024-01-01T12:00:00",
+    "completed_at": "2024-01-01T12:05:30"
+  }
+}
+```
+
+#### 6.3 获取Slide PDF结果
+
+**接口**: `GET /api/slide/result/<task_id>`
+
+**说明**: 下载生成的PDF演示文稿
+
+**响应**: PDF文件
+
+**cURL示例**:
+
+```bash
+curl http://localhost:5000/api/slide/result/slide-550e8400-e29b-41d4-a716-446655440000 \
+  --output presentation.pdf
+```
+
+#### 6.4 获取单个幻灯片图片
+
+**接口**: `GET /api/slide/result/<task_id>/image/<slide_number>`
+
+**说明**: 获取指定编号的幻灯片图片（PNG格式）
+
+**路径参数**:
+
+| 参数名 | 类型 | 说明 |
+|--------|------|------|
+| task_id | string | 任务ID |
+| slide_number | integer | 幻灯片编号（从1开始） |
+
+**响应**: PNG图片文件
+
+**cURL示例**:
+
+```bash
+# 获取第1张幻灯片
+curl http://localhost:5000/api/slide/result/slide-550e8400/image/1 \
+  --output slide_1.png
+```
+
+#### 6.5 查询Slide系统状态
+
+**接口**: `GET /api/slide/status`
+
+**说明**: 查询Slide生成系统的状态
+
+**响应示例**:
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "queue": {
+      "queue_size": 2,
+      "processing_count": 1
+    },
+    "generator_ready": true,
+    "enabled": true
+  }
+}
+```
+
+---
+
 ## 错误码说明
 
 | 错误码 | 说明 |
@@ -622,6 +826,49 @@ echo "图像已保存"
 - 增加 `TASK_TIMEOUT` 配置
 - 检查GPU性能
 - 减少 `num_inference_steps`
+
+### Slide生成服务不可用 (503错误)
+
+**错误信息**: "Slide生成服务不可用，请检查配置"
+
+**原因**: 必需的配置项未设置
+
+**解决方法**:
+
+1. 确认已在 `.env` 文件中配置以下必需项：
+   ```bash
+   SLIDE_LLM_API_KEY=your-api-key
+   SLIDE_IMAGE_API_KEY=your-api-key
+   SLIDE_IMAGE_API_URL=http://localhost:5000
+   ```
+
+2. 确认 `.env` 文件位于项目根目录（不是 `slide-gen/` 目录）
+
+3. 重启服务使配置生效
+
+4. 查看日志确认配置加载成功：
+   ```
+   ✓ 已加载配置文件: /path/to/.env
+   ✓ Slide生成服务初始化成功
+   ```
+
+### Playwright浏览器未安装
+
+**错误信息**: "Executable doesn't exist at /home/user/.cache/ms-playwright/..."
+
+**原因**: Playwright浏览器未安装
+
+**解决方法**:
+
+```bash
+# 安装Playwright Chromium浏览器
+playwright install chromium
+
+# 如果遇到权限问题，尝试
+python -m playwright install chromium
+```
+
+**注意**: 首次安装需要下载约150MB的浏览器文件，请确保网络畅通。
 
 ## 项目结构
 

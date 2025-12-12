@@ -13,7 +13,7 @@
 
 ### ✨ Professional AI Image Generation at Your Fingertips ✨
 
-| 🎨 Apple-Style Design | ⚡ Lightning Fast | 🔧 Custom Parameters | 📱 Desktop Optimized |
+| ⚡ Lightning Fast | 🔧 Custom Parameters |
 
 </div>
 
@@ -30,7 +30,7 @@ The system adopts a frontend-backend separation architecture, supporting task qu
 
 <div align="center">
 
-![System Architecture](images/img.png)
+![img.png](images/img.png)[System Architecture]
 
 </div>
 
@@ -60,6 +60,42 @@ The system adopts a frontend-backend separation architecture, supporting task qu
 - ✅ **GPU Monitoring**: Support for GPU usage monitoring
 - ✅ **Queue Management**: Task timeout and queue management mechanisms
 - ✅ **Unified API**: Unified JSON API response format
+
+### 🎯 Intelligent Slide Generation
+
+The system includes an **AI-powered presentation generator** that creates visually appealing, content-rich slides from textual input using Python and LangGraph.
+
+**Key Features:**
+
+- ✅ **AI-Driven Content Generation**: Uses LLM to generate structured outlines, layouts, and content
+- ✅ **Intelligent Image Generation**: Automatically creates relevant images with refined prompts
+- ✅ **Multiple Template Types**: Three professionally designed templates (Title & Content, Two Column, Image Focus)
+- ✅ **Multiple Output Formats**: Generates HTML, PNG images, and consolidated PDF
+- ✅ **Style Customization**: Support for different visual styles (professional, creative, minimal, academic)
+- ✅ **Flexible Configuration**: Customizable aspect ratios, content richness, and slide count
+- ✅ **Robust Error Handling**: Graceful degradation with placeholder images and comprehensive logging
+
+**Architecture:**
+
+The slide generation system uses **LangGraph** to orchestrate a multi-phase workflow:
+
+1. **Phase 1: Outline Planning** - Generate structured outline for all slides
+2. **Phase 2: Page-by-Page Generation** - For each slide:
+   - Generate layout and content
+   - Refine image prompts
+   - Generate images via API
+   - Assemble HTML slide
+3. **Phase 3: Final Export** - Export to PNG and compile PDF
+
+**Output Files:**
+
+After successful generation, you'll find:
+- **`output/html/`** - Individual HTML files for each slide
+- **`output/images/`** - AI-generated images used in slides
+- **`output/slide_images/`** - PNG exports of complete slides
+- **`output/final_presentation.pdf`** - Multi-page PDF presentation
+
+For detailed documentation, see the [`slide-gen/README.md`](slide-gen/README.md) file.
 
 ## Tech Stack
 
@@ -111,7 +147,49 @@ cd Z-Image-BackendService
 pip install -r requirements.txt
 ```
 
-### 3. Configure Backend Service (Optional)
+### 3. Setup Slide Generation Service (Optional)
+
+If you want to use the intelligent slide generation feature, run the setup script to install all required dependencies:
+
+```bash
+# Make the script executable (Linux/macOS)
+chmod +x setup_slide_generation.sh
+
+# Run the setup script
+./setup_slide_generation.sh
+```
+
+**What the script does:**
+
+- ✅ Checks Python version compatibility (requires Python 3.9+)
+- ✅ Installs all slide-gen dependencies from `slide-gen/requirements.txt`
+- ✅ Installs Playwright Chromium browser (required for PNG export, ~150MB download)
+- ✅ Verifies `.env` configuration file and checks for required API keys
+
+**Required Configuration:**
+
+After running the setup script, make sure to configure the following in your `.env` file:
+
+```env
+# Slide Generation - LLM Configuration
+SLIDE_LLM_API_KEY=your-openai-api-key
+SLIDE_LLM_API_URL=https://api.openai.com/v1/chat/completions
+SLIDE_LLM_MODEL=gpt-4
+
+# Slide Generation - Image API Configuration  
+SLIDE_IMAGE_API_KEY=your-image-api-key
+SLIDE_IMAGE_API_URL=http://localhost:5000
+SLIDE_IMAGE_MODEL=stable-diffusion-xl
+```
+
+**Note:** The slide generation service requires:
+- Python 3.9 or higher
+- OpenAI-compatible LLM API access
+- Image generation API access (can use the Z-Image backend service)
+
+For detailed slide generation documentation, refer to [`slide-gen/README.md`](slide-gen/README.md).
+
+### 4. Configure Backend Service (Optional)
 
 Create a `.env` file or set environment variables directly:
 
@@ -137,7 +215,7 @@ TASK_TIMEOUT=300
 OUTPUT_DIR=./outputs
 ```
 
-### 4. Start Backend Service
+### 5. Start Backend Service
 
 #### Development Mode
 
@@ -155,7 +233,7 @@ gunicorn -w 1 -b 0.0.0.0:5000 --timeout 600 app:app
 
 After starting, the backend service runs at `http://localhost:5000` by default.
 
-### 5. Install Frontend Dependencies
+### 6. Install Frontend Dependencies
 
 ```bash
 cd frontend
@@ -166,7 +244,7 @@ yarn install
 pnpm install
 ```
 
-### 6. Configure Frontend Backend Service Address
+### 7. Configure Frontend Backend Service Address
 
 There are two ways to configure the backend service address:
 
@@ -195,7 +273,7 @@ Then modify the address in `.env.local`.
 
 **Configuration Priority**: Environment variables > localStorage configuration > Default value (`http://localhost:5000`)
 
-### 7. Start Frontend Service
+### 8. Start Frontend Service
 
 ```bash
 cd frontend
@@ -258,176 +336,6 @@ Stop script features:
 - ✅ Automatically attempts force stop if normal stop fails
 - ✅ Detailed logging
 
-## Deployment Guide
-
-### Backend Service Deployment
-
-#### Deploying with Gunicorn
-
-```bash
-gunicorn -w 1 -b 0.0.0.0:5000 --timeout 600 app:app
-```
-
-#### Managing with systemd (Linux)
-
-Create service file `/etc/systemd/system/z-image-backend.service`:
-
-```ini
-[Unit]
-Description=Z-Image Backend Service
-After=network.target
-
-[Service]
-Type=simple
-User=your-user
-WorkingDirectory=/path/to/Z-Image-BackendService
-Environment="PATH=/path/to/venv/bin"
-ExecStart=/path/to/venv/bin/gunicorn -w 1 -b 0.0.0.0:5000 --timeout 600 app:app
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Start service:
-
-```bash
-sudo systemctl start z-image-backend
-sudo systemctl enable z-image-backend
-```
-
-#### Using Nginx Reverse Proxy (Optional)
-
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    location / {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
-### Frontend Service Deployment
-
-#### Build Production Version
-
-```bash
-cd frontend
-npm run build
-```
-
-#### Start Production Server
-
-```bash
-npm start
-```
-
-#### Managing with PM2 (Recommended)
-
-```bash
-# Install PM2
-npm install -g pm2
-
-# Start application
-cd frontend
-pm2 start npm --name "z-image-frontend" -- start
-
-# Check status
-pm2 status
-
-# View logs
-pm2 logs z-image-frontend
-
-# Stop application
-pm2 stop z-image-frontend
-
-# Restart application
-pm2 restart z-image-frontend
-```
-
-#### Deploying Static Files with Nginx
-
-```bash
-# Build static files
-cd frontend
-npm run build
-
-# Export static files
-npm run export  # If static export is configured
-```
-
-Nginx configuration:
-
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-    root /path/to/frontend/out;
-    index index.html;
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Proxy API to backend service
-    location /api {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
-```
-
-### Docker Deployment (Optional)
-
-#### Backend Dockerfile
-
-```dockerfile
-FROM python:3.10-slim
-
-WORKDIR /app
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-EXPOSE 5000
-
-CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:5000", "--timeout", "600", "app:app"]
-```
-
-#### Frontend Dockerfile
-
-```dockerfile
-FROM node:18-alpine AS builder
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm install
-
-COPY . .
-RUN npm run build
-
-FROM node:18-alpine
-
-WORKDIR /app
-
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-
-EXPOSE 3000
-
-CMD ["npm", "start"]
-```
 
 ## API Overview
 
@@ -544,32 +452,6 @@ For detailed API documentation, refer to `README-BackendService.md`.
 - Reduce concurrent task count
 - Lower image resolution
 
-## Project Structure
-
-```
-Z-Image-BackendService/
-├── app.py                    # Flask application main file
-├── model_manager.py          # Model loading and management
-├── task_queue.py             # Task queue management
-├── config.py                 # Configuration file
-├── requirements.txt          # Python dependencies list
-├── outputs/                  # Generated images storage directory
-├── README-BackendService.md  # Backend detailed documentation
-├── start.sh                  # One-click startup script
-├── stop.sh                   # One-click stop script
-└── frontend/                 # Frontend application directory
-    ├── app/                  # Next.js App Router
-    ├── components/           # React components
-    ├── hooks/                # Custom Hooks
-    ├── lib/                  # Utility functions and configuration
-    ├── types/                # TypeScript type definitions
-    ├── public/               # Static assets
-    ├── package.json
-    ├── tsconfig.json
-    ├── tailwind.config.js
-    ├── next.config.js
-    └── README.md             # Frontend detailed documentation
-```
 
 ## Performance Optimization Recommendations
 
@@ -592,5 +474,7 @@ This project is based on the Z-Image-Turbo model. Please comply with the corresp
 
 ## Contact
 
+Email: xdrshjr@gmail.com
+
 For questions or suggestions, please submit an Issue or Pull Request.
-```
+

@@ -10,6 +10,7 @@ import requests
 from PIL import Image
 from io import BytesIO
 from src.utils.config import config
+from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,54 @@ class ImageGenerator:
         self.max_retries = config.max_retries
         self.poll_interval = 2  # Poll every 2 seconds
         self.max_wait_time = 300  # Maximum wait time: 5 minutes
+        
+        # Check if we should use internal bridge (for localhost calls)
+        self.use_internal_bridge = self._should_use_internal_bridge()
+        self.internal_bridge = None
+        
+        if self.use_internal_bridge:
+            try:
+                # Import internal_image_bridge (should be in parent directory)
+                import sys
+                from pathlib import Path
+                parent_dir = Path(__file__).resolve().parents[3]  # Go up to project root
+                if str(parent_dir) not in sys.path:
+                    sys.path.insert(0, str(parent_dir))
+                
+                from internal_image_bridge import get_internal_bridge
+                self.internal_bridge = get_internal_bridge()
+                
+                # Check if task queue manager is registered
+                if self.internal_bridge._get_task_queue_manager() is not None:
+                    logger.info("✓ Using internal image bridge (bypassing HTTP to avoid deadlock)")
+                else:
+                    logger.warning("Internal bridge task queue manager未注册，将使用HTTP调用")
+                    logger.warning("  如果遇到502错误，请确保app.py正确初始化了internal bridge")
+                    self.use_internal_bridge = False
+            except Exception as e:
+                logger.warning(f"Failed to initialize internal bridge: {e}")
+                logger.warning("Will fall back to HTTP calls")
+                self.use_internal_bridge = False
+    
+    def _should_use_internal_bridge(self) -> bool:
+        """
+        Check if we should use internal bridge instead of HTTP calls.
+        Returns True if api_url points to localhost/127.0.0.1.
+        """
+        try:
+            parsed = urlparse(self.api_url)
+            hostname = parsed.hostname or ''
+            
+            # Check if it's localhost or 127.0.0.1
+            is_localhost = hostname.lower() in ['localhost', '127.0.0.1', '0.0.0.0', '']
+            
+            if is_localhost:
+                logger.debug(f"Detected localhost URL ({self.api_url}), will use internal bridge")
+            
+            return is_localhost
+        except Exception as e:
+            logger.debug(f"Failed to parse URL {self.api_url}: {e}")
+            return False
     
     def generate_image(
         self,
@@ -101,6 +150,18 @@ class ImageGenerator:
             if adjusted_width != width or adjusted_height != height:
                 logger.info(f"Adjusted dimensions from {width}x{height} to {adjusted_width}x{adjusted_height} (multiple of 16)")
             
+            # Use internal bridge if available
+            if self.use_internal_bridge and self.internal_bridge:
+                logger.debug("Submitting task via internal bridge")
+                task_id = self.internal_bridge.submit_task(
+                    prompt=prompt,
+                    width=adjusted_width,
+                    height=adjusted_height,
+                    num_inference_steps=9
+                )
+                return task_id
+            
+            # Fall back to HTTP
             url = f"{self.api_url}/api/generate"
             payload = {
                 "prompt": prompt,
@@ -145,6 +206,12 @@ class ImageGenerator:
         Returns:
             tuple: (success, error_message)
         """
+        # Use internal bridge if available
+        if self.use_internal_bridge and self.internal_bridge:
+            logger.debug("Waiting for completion via internal bridge")
+            return self.internal_bridge.wait_for_completion(task_id)
+        
+        # Fall back to HTTP
         start_time = time.time()
         
         while True:
@@ -195,6 +262,22 @@ class ImageGenerator:
             Success status
         """
         try:
+            # Use internal bridge if available
+            if self.use_internal_bridge and self.internal_bridge:
+                logger.debug("Downloading image via internal bridge")
+                image_bytes = self.internal_bridge.get_task_result(task_id)
+                
+                if image_bytes:
+                    # Save and resize image
+                    image = Image.open(BytesIO(image_bytes))
+                    image = self._resize_image(image, target_width, target_height)
+                    image.save(output_path)
+                    return True
+                else:
+                    logger.error("Failed to get image data from internal bridge")
+                    return False
+            
+            # Fall back to HTTP
             url = f"{self.api_url}/api/result/{task_id}"
             response = requests.get(url, timeout=60)
             response.raise_for_status()

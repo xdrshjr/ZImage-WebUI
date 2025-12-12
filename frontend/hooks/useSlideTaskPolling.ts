@@ -100,6 +100,11 @@ export const useSlideTaskPolling = (
     
     if (!hasActiveTask) {
       setIsPolling(false);
+      // 清除定时器，停止轮询
+      if (pollingTimerRef.current) {
+        clearInterval(pollingTimerRef.current);
+        pollingTimerRef.current = null;
+      }
       logger.info('所有Slide任务已完成或失败，停止轮询');
     }
   }, [taskIds, fetchTaskStatus, shouldContinuePolling]);

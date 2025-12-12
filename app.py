@@ -532,6 +532,17 @@ def initialize_app():
     # 初始化任务队列管理器
     task_queue_manager = TaskQueueManager(model_manager)
     
+    # 注册task_queue_manager到internal image bridge（用于slide生成）
+    # 这样可以避免循环导入和重复加载模型的问题
+    try:
+        from internal_image_bridge import get_internal_bridge
+        bridge = get_internal_bridge()
+        bridge.register_task_queue_manager(task_queue_manager)
+        logger.info("✓ Internal image bridge已配置")
+    except Exception as e:
+        logger.warning(f"Internal image bridge配置失败: {e}")
+        logger.warning("  Slide生成中的图像生成可能无法正常工作")
+    
     # 初始化Slide生成器（如果启用）
     if config.ENABLE_SLIDE_GENERATION:
         logger.info("初始化Slide生成服务...")

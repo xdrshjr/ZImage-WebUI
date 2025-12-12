@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="slide {{ style }}">
+    <h1 class="slide-title">{{ title }}</h1>
+    
+    <div class="content-area">
+        <div style="display: flex; gap: 60px; width: 100%; height: 100%;">
+            <!-- Left Column -->
+            <div style="flex: 1; position: relative;">
+                {% for block in content_blocks %}
+                    {% if block.type == 'text' and block.position.x < width // 2 %}
+                        <div class="text-content">{{ block.content }}</div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            
+            <!-- Right Column -->
+            <div style="flex: 1; position: relative;">
+                {% for block in content_blocks %}
+                    {% if block.type == 'text' and block.position.x >= width // 2 %}
+                        <div class="text-content">{{ block.content }}</div>
+                    {% elif block.type == 'image_placeholder' and block.image_path %}
+                        <div class="image-container" style="width: 100%; height: 100%; position: relative;">
+                            <img src="{{ block.image_path }}" alt="Slide image">
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

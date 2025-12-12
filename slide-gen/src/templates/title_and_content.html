@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="slide {{ style }}">
+    <h1 class="slide-title">{{ title }}</h1>
+    
+    <div class="content-area">
+        {% for block in content_blocks %}
+            {% if block.type == 'text' %}
+                <div class="text-block" style="left: {{ block.position.x }}px; top: {{ block.position.y }}px; width: {{ block.position.width }}px; height: {{ block.position.height }}px;">
+                    <div class="text-content">{{ block.content }}</div>
+                </div>
+            {% elif block.type == 'image_placeholder' and block.image_path %}
+                <div class="image-container" style="left: {{ block.position.x }}px; top: {{ block.position.y }}px; width: {{ block.position.width }}px; height: {{ block.position.height }}px;">
+                    <img src="{{ block.image_path }}" alt="Slide image">
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+

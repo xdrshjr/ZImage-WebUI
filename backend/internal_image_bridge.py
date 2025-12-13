@@ -54,6 +54,15 @@ class InternalImageBridge:
         
         return self._task_queue_manager
     
+    def is_ready(self) -> bool:
+        """
+        Check if the internal bridge is ready to use.
+        
+        Returns:
+            bool: True if task queue manager is registered and ready
+        """
+        return self._task_queue_manager is not None
+    
     def submit_task(
         self,
         prompt: str,

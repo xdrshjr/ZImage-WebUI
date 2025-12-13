@@ -30,7 +30,7 @@ _logger.debug(f"Slide配置已设置: LLM_API_KEY={'已设置' if config.SLIDE_L
               f"IMAGE_API_URL={'已设置' if config.SLIDE_IMAGE_API_URL else '未设置'}")
 
 # Add slide-gen to Python path
-slide_gen_path = Path(__file__).parent / "slide-gen"
+slide_gen_path = Path(__file__).parent / "agents" / "slide-gen"
 if str(slide_gen_path) not in sys.path:
     sys.path.insert(0, str(slide_gen_path))
 

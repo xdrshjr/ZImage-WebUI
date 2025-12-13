@@ -34,18 +34,21 @@ class ImageGenerator:
         
         if self.use_internal_bridge:
             try:
-                # Import internal_image_bridge (should be in parent directory)
+                # Import internal_image_bridge directly from backend directory
                 import sys
                 from pathlib import Path
-                parent_dir = Path(__file__).resolve().parents[3]  # Go up to project root
-                if str(parent_dir) not in sys.path:
-                    sys.path.insert(0, str(parent_dir))
+                # Path structure: .../backend/agents/slide-gen/src/image/generator.py
+                # Go up 3 levels to reach backend directory
+                backend_dir = Path(__file__).resolve().parents[3]  # Go up to backend directory
+                if str(backend_dir) not in sys.path:
+                    sys.path.insert(0, str(backend_dir))
                 
-                from internal_image_bridge import get_internal_bridge
-                self.internal_bridge = get_internal_bridge()
+                # Import internal_image_bridge module directly
+                import internal_image_bridge
+                self.internal_bridge = internal_image_bridge.get_internal_bridge()
                 
                 # Check if task queue manager is registered
-                if self.internal_bridge._get_task_queue_manager() is not None:
+                if self.internal_bridge.is_ready():
                     logger.info("✓ Using internal image bridge (bypassing HTTP to avoid deadlock)")
                 else:
                     logger.warning("Internal bridge task queue manager未注册，将使用HTTP调用")
@@ -334,8 +337,8 @@ class ImageGenerator:
             height: Image height
             error_msg: Error message to display
         """
-        from PIL import ImageDraw, ImageFont
-        
+        from PIL import ImageDraw
+
         logger.info(f"Creating placeholder image at {output_path}")
         
         # Create gray placeholder

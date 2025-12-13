@@ -81,7 +81,7 @@ After successful generation, you'll find:
 - **`output/slide_images/`** - PNG exports of complete slides
 - **`output/final_presentation.pdf`** - Multi-page PDF presentation
 
-For detailed documentation, see the [`slide-gen/README.md`](slide-gen/README.md) file.
+For detailed documentation, see the [`slide-gen/README.md`](backend/agents/slide-gen/README.md) file.
 
 ## Tech Stack
 
@@ -115,7 +115,7 @@ For detailed documentation, see the [`slide-gen/README.md`](slide-gen/README.md)
 
 - Python 3.8+
 - CUDA 11.8+ (GPU environment)
-- At least 16GB GPU VRAM
+- At least 24GB GPU VRAM
 - 8GB+ system RAM
 
 ## Quick Start
@@ -124,7 +124,7 @@ For detailed documentation, see the [`slide-gen/README.md`](slide-gen/README.md)
 
 ```bash
 git clone <repository-url>
-cd Z-Image-BackendService
+cd Z-Image-Gen
 ```
 
 ### 2. Install Backend Dependencies
@@ -173,7 +173,7 @@ SLIDE_IMAGE_MODEL=stable-diffusion-xl
 - OpenAI-compatible LLM API access
 - Image generation API access (can use the Z-Image backend service)
 
-For detailed slide generation documentation, refer to [`slide-gen/README.md`](slide-gen/README.md).
+For detailed slide generation documentation, refer to [`slide-gen/README.md`](backend/agents/slide-gen/README.md).
 
 ### 4. Configure Backend Service (Optional)
 
@@ -429,7 +429,7 @@ For detailed API documentation, refer to `README-BackendService.md`.
 ### Model Loading Failure
 
 - Check if CUDA is available: `python -c "import torch; print(torch.cuda.is_available())"`
-- Verify GPU VRAM is sufficient (at least 16GB)
+- Verify GPU VRAM is sufficient (at least 24GB)
 - Check if model path is correct
 
 ### Insufficient GPU Memory

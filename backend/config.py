@@ -75,8 +75,9 @@ SLIDE_LLM_MODEL = os.getenv("SLIDE_LLM_MODEL", "gpt-4")
 # 图像生成配置（用于生成幻灯片中的图片）
 # 必需：SLIDE_IMAGE_API_KEY - 图像生成服务的API密钥
 # 必需：SLIDE_IMAGE_API_URL - 图像生成服务的API地址
-SLIDE_IMAGE_API_KEY = os.getenv("SLIDE_IMAGE_API_KEY", "")
-SLIDE_IMAGE_API_URL = os.getenv("SLIDE_IMAGE_API_URL", "")
+# 注意：如果使用本地服务，设置为 http://localhost:5000 或保持空字符串使用internal bridge
+SLIDE_IMAGE_API_KEY = os.getenv("SLIDE_IMAGE_API_KEY", "dummy-key-for-internal-bridge")
+SLIDE_IMAGE_API_URL = os.getenv("SLIDE_IMAGE_API_URL", "http://localhost:5000")
 SLIDE_IMAGE_MODEL = os.getenv("SLIDE_IMAGE_MODEL", "stable-diffusion-xl")
 
 # 其他设置

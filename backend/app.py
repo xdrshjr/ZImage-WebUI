@@ -3,7 +3,6 @@ Flask主应用
 提供图像生成API服务
 """
 import logging
-import os
 import queue
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS

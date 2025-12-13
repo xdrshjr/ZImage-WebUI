@@ -82,7 +82,7 @@ cd ..
 
 # 步骤2: 启动后台服务
 log_info "启动后台服务..."
-log_debug "执行: $PYTHON_CMD app.py"
+log_debug "执行: $PYTHON_CMD backend/app.py"
 
 # 检查后台是否已在运行
 PORT_5000_IN_USE=false
@@ -101,9 +101,9 @@ if [ "$PORT_5000_IN_USE" = true ]; then
 else
     # 后台运行 Flask 服务
     if command -v nohup &> /dev/null; then
-        nohup $PYTHON_CMD app.py > backend.log 2>&1 &
+        nohup $PYTHON_CMD backend/app.py > backend.log 2>&1 &
     else
-        $PYTHON_CMD app.py > backend.log 2>&1 &
+        $PYTHON_CMD backend/app.py > backend.log 2>&1 &
     fi
     BACKEND_PID=$!
     log_info "后台服务已启动 (PID: $BACKEND_PID)"

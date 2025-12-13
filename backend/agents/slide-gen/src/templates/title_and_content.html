@@ -8,10 +8,19 @@
         {% for block in content_blocks %}
             {% if block.type == 'text' %}
                 <div class="text-block" style="left: {{ block.position.x }}px; top: {{ block.position.y }}px; width: {{ block.position.width }}px; height: {{ block.position.height }}px;">
+                    {% if block.section_title %}
+                        <div class="section-header">{{ block.section_title }}</div>
+                    {% endif %}
                     <div class="text-content">{{ block.content }}</div>
                 </div>
             {% elif block.type == 'image_placeholder' and block.image_path %}
-                <div class="image-container" style="left: {{ block.position.x }}px; top: {{ block.position.y }}px; width: {{ block.position.width }}px; height: {{ block.position.height }}px;">
+                {% set img_x = [block.position.x, 60]|max %}
+                {% set img_y = [block.position.y, 80]|max %}
+                {% set max_right = width - 60 %}
+                {% set max_bottom = height - 80 %}
+                {% set img_width = [block.position.width, max_right - img_x]|min %}
+                {% set img_height = [block.position.height, max_bottom - img_y]|min %}
+                <div class="image-container" style="left: {{ img_x }}px; top: {{ img_y }}px; width: {{ img_width }}px; height: {{ img_height }}px; margin: 0;">
                     <img src="{{ block.image_path }}" alt="Slide image">
                 </div>
             {% endif %}

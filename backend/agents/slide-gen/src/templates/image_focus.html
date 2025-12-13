@@ -4,23 +4,27 @@
 <div class="slide {{ style }}">
     <h1 class="slide-title" style="text-align: center;">{{ title }}</h1>
     
-    <div class="content-area" style="align-items: center; justify-content: center;">
+    <div class="content-area" style="align-items: center; justify-content: center; padding: 0 80px;">
         {% for block in content_blocks %}
             {% if block.type == 'image_placeholder' and block.image_path %}
-                <div class="image-container" style="position: relative; max-width: 90%; max-height: 70%; margin: 0 auto;">
-                    <img src="{{ block.image_path }}" alt="Slide image" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                <div style="position: relative; width: 100%; max-width: calc(100% - 80px); max-height: 60%; margin: 30px auto 40px auto; padding: 15px; box-sizing: border-box; border-radius: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);">
+                    <img src="{{ block.image_path }}" alt="Slide image" style="width: 100%; height: auto; max-height: 550px; object-fit: contain; border-radius: 8px; display: block;">
                 </div>
             {% endif %}
         {% endfor %}
         
         {% for block in content_blocks %}
             {% if block.type == 'text' %}
-                <div class="text-content" style="text-align: center; margin-top: 30px; font-size: 28px;">
-                    {{ block.content }}
+                <div style="text-align: center; margin-top: 35px; padding: 0 80px;">
+                    {% if block.section_title %}
+                        <div class="section-header" style="text-align: center; border-left: none; padding-left: 0;">{{ block.section_title }}</div>
+                    {% endif %}
+                    <div class="text-content" style="font-size: 24px; line-height: 1.6;">
+                        {{ block.content }}
+                    </div>
                 </div>
             {% endif %}
         {% endfor %}
     </div>
 </div>
 {% endblock %}
-

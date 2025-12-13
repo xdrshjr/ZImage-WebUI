@@ -52,33 +52,51 @@ class HTMLRenderer:
         template_type = slide_data['template_type']
         layout = slide_data['layout']
         
-        logger.debug(f"Rendering slide {slide_number} with {template_type} template")
+        logger.debug(f"Rendering slide {slide_number} with '{template_type}' template")
+        logger.debug(f"Style: {style}, Aspect Ratio: {aspect_ratio}")
         
         # Get dimensions
         dims = self.dimensions[aspect_ratio]
+        logger.debug(f"Slide dimensions: {dims['width']}x{dims['height']}")
         
         # Validate and truncate text content
         title = layout.get('title', '')
-        title = self._validate_and_truncate(title, 70, 'title', slide_number)
+        title = self._validate_and_truncate(title, 80, 'title', slide_number)
         
         content_blocks = layout.get('content_blocks', [])
-        for block in content_blocks:
+        logger.debug(f"Processing {len(content_blocks)} content blocks")
+        
+        for i, block in enumerate(content_blocks):
             if block.get('type') == 'text':
+                # Validate section title if present
+                if 'section_title' in block and block['section_title']:
+                    section_title = block['section_title']
+                    block['section_title'] = self._validate_and_truncate(
+                        section_title, 60, f'section title {i+1}', slide_number
+                    )
+                
+                # Validate content
                 char_limit = block.get('char_limit', 500)
                 content = block.get('content', '')
                 block['content'] = self._validate_and_truncate(
-                    content, char_limit, 'content block', slide_number
+                    content, char_limit, f'content block {i+1}', slide_number
                 )
+                logger.debug(f"Block {i+1}: Text content with section title ({len(block['content'])} chars)")
+            elif block.get('type') == 'image_placeholder':
+                position = block.get('position', {})
+                logger.debug(f"Block {i+1}: Image placeholder at ({position.get('x', 0)}, {position.get('y', 0)})")
         
         # Load template
         template_file = f"{template_type}.html"
         try:
             template = self.env.get_template(template_file)
+            logger.debug(f"Template '{template_file}' loaded successfully")
         except Exception as e:
-            logger.warning(f"Template {template_file} not found, using title_and_content.html")
+            logger.warning(f"Template '{template_file}' not found, using title_and_content.html as fallback: {str(e)}")
             template = self.env.get_template("title_and_content.html")
         
         # Render template
+        logger.debug("Rendering template with data")
         html_content = template.render(
             slide_number=slide_number,
             title=title,
@@ -92,7 +110,7 @@ class HTMLRenderer:
         output_path = config.html_dir / f"slide_{slide_number}.html"
         output_path.write_text(html_content, encoding='utf-8')
         
-        logger.debug(f"HTML saved to {output_path}")
+        logger.debug(f"HTML file saved to {output_path} ({len(html_content)} bytes)")
         return output_path
     
     def _validate_and_truncate(
@@ -114,11 +132,16 @@ class HTMLRenderer:
         Returns:
             Validated and possibly truncated text
         """
-        if len(text) > max_length:
+        original_length = len(text)
+        if original_length > max_length:
             logger.warning(
                 f"Slide {slide_number} {field_name} exceeds {max_length} chars "
-                f"({len(text)}), truncating"
+                f"({original_length}), truncating to fit"
             )
-            return InputValidator.truncate_text(text, max_length)
+            truncated = InputValidator.truncate_text(text, max_length)
+            logger.debug(f"Truncated from {original_length} to {len(truncated)} characters")
+            return truncated
+        
+        logger.debug(f"Slide {slide_number} {field_name} within limits: {original_length}/{max_length} chars")
         return text
 

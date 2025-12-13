@@ -23,11 +23,16 @@ os.environ["IMAGE_MODEL"] = config.SLIDE_IMAGE_MODEL
 os.environ["DEFAULT_TIMEOUT"] = str(config.SLIDE_DEFAULT_TIMEOUT)
 os.environ["MAX_RETRIES"] = str(config.SLIDE_MAX_RETRIES)
 
+# Enable bridge mode when called from Flask service
+# This allows the agent to use internal_image_bridge instead of HTTP calls
+os.environ["USE_BRIDGE"] = "true"
+
 # Log configuration status for debugging
 _logger = logging.getLogger(__name__)
 _logger.debug(f"Slide配置已设置: LLM_API_KEY={'已设置' if config.SLIDE_LLM_API_KEY else '未设置'}, "
               f"IMAGE_API_KEY={'已设置' if config.SLIDE_IMAGE_API_KEY else '未设置'}, "
-              f"IMAGE_API_URL={'已设置' if config.SLIDE_IMAGE_API_URL else '未设置'}")
+              f"IMAGE_API_URL={'已设置' if config.SLIDE_IMAGE_API_URL else '未设置'}, "
+              f"USE_BRIDGE=true (Flask service mode)")
 
 # Add slide-gen to Python path
 slide_gen_path = Path(__file__).parent / "agents" / "slide-gen"

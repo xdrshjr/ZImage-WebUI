@@ -10,7 +10,6 @@ import requests
 from PIL import Image
 from io import BytesIO
 from src.utils.config import config
-from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
@@ -28,11 +27,14 @@ class ImageGenerator:
         self.poll_interval = 2  # Poll every 2 seconds
         self.max_wait_time = 300  # Maximum wait time: 5 minutes
         
-        # Check if we should use internal bridge (for localhost calls)
-        self.use_internal_bridge = self._should_use_internal_bridge()
+        # Check if we should use internal bridge based on config
+        # This is controlled by USE_BRIDGE environment variable
+        self.use_internal_bridge = config.use_bridge
         self.internal_bridge = None
         
+        # Only attempt to initialize bridge if USE_BRIDGE is True
         if self.use_internal_bridge:
+            logger.info("Bridge mode enabled (USE_BRIDGE=true)")
             try:
                 # Import internal_image_bridge directly from backend directory
                 import sys
@@ -49,35 +51,18 @@ class ImageGenerator:
                 
                 # Check if task queue manager is registered
                 if self.internal_bridge.is_ready():
-                    logger.info("✓ Using internal image bridge (bypassing HTTP to avoid deadlock)")
+                    logger.info("✓ Internal image bridge initialized successfully")
                 else:
-                    logger.warning("Internal bridge task queue manager未注册，将使用HTTP调用")
-                    logger.warning("  如果遇到502错误，请确保app.py正确初始化了internal bridge")
+                    logger.warning("Internal bridge task queue manager not registered")
+                    logger.warning("  Ensure app.py correctly initializes the internal bridge")
+                    logger.warning("  Falling back to HTTP calls")
                     self.use_internal_bridge = False
             except Exception as e:
                 logger.warning(f"Failed to initialize internal bridge: {e}")
-                logger.warning("Will fall back to HTTP calls")
+                logger.warning("Falling back to HTTP calls")
                 self.use_internal_bridge = False
-    
-    def _should_use_internal_bridge(self) -> bool:
-        """
-        Check if we should use internal bridge instead of HTTP calls.
-        Returns True if api_url points to localhost/127.0.0.1.
-        """
-        try:
-            parsed = urlparse(self.api_url)
-            hostname = parsed.hostname or ''
-            
-            # Check if it's localhost or 127.0.0.1
-            is_localhost = hostname.lower() in ['localhost', '127.0.0.1', '0.0.0.0', '']
-            
-            if is_localhost:
-                logger.debug(f"Detected localhost URL ({self.api_url}), will use internal bridge")
-            
-            return is_localhost
-        except Exception as e:
-            logger.debug(f"Failed to parse URL {self.api_url}: {e}")
-            return False
+        else:
+            logger.info("HTTP mode enabled (USE_BRIDGE=false) - Using direct API calls")
     
     def generate_image(
         self,
@@ -98,7 +83,10 @@ class ImageGenerator:
         Returns:
             tuple: (success, error_message)
         """
-        logger.info(f"Generating image: {width}x{height} - {prompt[:50]}...")
+        prompt_preview = prompt[:80] + "..." if len(prompt) > 80 else prompt
+        logger.info(f"Generating image: {width}x{height}")
+        logger.debug(f"Prompt: {prompt_preview}")
+        logger.debug(f"Output path: {output_path}")
         
         last_error = None
         for attempt in range(self.max_retries):
@@ -106,35 +94,43 @@ class ImageGenerator:
                 logger.debug(f"Image generation attempt {attempt + 1}/{self.max_retries}")
                 
                 # Step 1: Submit task
+                logger.debug("Step 1: Submitting image generation task")
                 task_id = self._submit_task(prompt, width, height)
                 if not task_id:
-                    raise Exception("Failed to submit task")
+                    raise Exception("Failed to submit task - no task ID returned")
                 
-                logger.debug(f"Task submitted: {task_id}")
+                logger.info(f"✓ Task submitted successfully: {task_id}")
                 
                 # Step 2: Poll for completion
+                logger.debug("Step 2: Waiting for image generation to complete")
                 success, error = self._wait_for_completion(task_id)
                 if not success:
-                    raise Exception(error or "Task failed")
+                    raise Exception(error or "Task failed without error message")
+                
+                logger.info(f"✓ Image generation completed for task {task_id}")
                 
                 # Step 3: Download image
+                logger.debug("Step 3: Downloading generated image")
                 success = self._download_image(task_id, output_path, width, height)
                 if success:
-                    logger.info(f"Image saved to {output_path}")
+                    logger.info(f"✓ Image saved successfully to {output_path.name}")
                     return True, None
                 else:
-                    raise Exception("Failed to download image")
+                    raise Exception("Failed to download image - no image data received")
                 
             except Exception as e:
                 last_error = e
-                logger.warning(f"Image generation failed (attempt {attempt + 1}): {str(e)}")
+                logger.warning(f"Image generation attempt {attempt + 1} failed: {str(e)}")
                 if attempt < self.max_retries - 1:
-                    time.sleep(2 ** attempt)  # Exponential backoff
+                    backoff_time = 2 ** attempt
+                    logger.info(f"Retrying in {backoff_time} seconds...")
+                    time.sleep(backoff_time)  # Exponential backoff
         
         error_msg = f"Image generation failed after {self.max_retries} attempts: {str(last_error)}"
         logger.error(error_msg)
         
         # Create placeholder image on failure
+        logger.warning("Creating placeholder image due to generation failure")
         self._create_placeholder_image(output_path, width, height, str(last_error))
         return False, error_msg
     
@@ -151,21 +147,25 @@ class ImageGenerator:
             adjusted_height = self._round_to_multiple(height, 16)
             
             if adjusted_width != width or adjusted_height != height:
-                logger.info(f"Adjusted dimensions from {width}x{height} to {adjusted_width}x{adjusted_height} (multiple of 16)")
+                logger.info(f"Adjusted dimensions: {width}x{height} → {adjusted_width}x{adjusted_height} (multiple of 16 required)")
+            else:
+                logger.debug(f"Dimensions already valid: {width}x{height}")
             
             # Use internal bridge if available
             if self.use_internal_bridge and self.internal_bridge:
-                logger.debug("Submitting task via internal bridge")
+                logger.debug("Submitting task via internal bridge (bypassing HTTP)")
                 task_id = self.internal_bridge.submit_task(
                     prompt=prompt,
                     width=adjusted_width,
                     height=adjusted_height,
                     num_inference_steps=9
                 )
+                logger.debug(f"Internal bridge returned task ID: {task_id}")
                 return task_id
             
             # Fall back to HTTP
             url = f"{self.api_url}/api/generate"
+            logger.debug(f"Submitting task via HTTP to {url}")
             payload = {
                 "prompt": prompt,
                 "width": adjusted_width,
@@ -174,19 +174,28 @@ class ImageGenerator:
             }
             
             response = requests.post(url, json=payload, timeout=30)
+            logger.debug(f"HTTP response status: {response.status_code}")
             response.raise_for_status()
             
             result = response.json()
             
             if result.get("code") == 200:
                 task_id = result.get("data", {}).get("task_id")
+                logger.debug(f"Task submission successful, task ID: {task_id}")
                 return task_id
             else:
-                logger.error(f"API error: {result.get('message')}")
+                error_msg = result.get('message', 'Unknown error')
+                logger.error(f"API returned error code: {result.get('code')} - {error_msg}")
                 return None
                 
+        except requests.exceptions.Timeout as e:
+            logger.error(f"Task submission timeout: {str(e)}")
+            return None
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Task submission HTTP error: {str(e)}")
+            return None
         except Exception as e:
-            logger.error(f"Failed to submit task: {str(e)}")
+            logger.error(f"Task submission failed: {str(e)}", exc_info=True)
             return None
     
     def _round_to_multiple(self, value: int, multiple: int) -> int:
@@ -211,17 +220,29 @@ class ImageGenerator:
         """
         # Use internal bridge if available
         if self.use_internal_bridge and self.internal_bridge:
-            logger.debug("Waiting for completion via internal bridge")
-            return self.internal_bridge.wait_for_completion(task_id)
+            logger.debug(f"Waiting for task {task_id} completion via internal bridge")
+            result = self.internal_bridge.wait_for_completion(task_id)
+            if result[0]:
+                logger.debug(f"Task {task_id} completed successfully via internal bridge")
+            else:
+                logger.warning(f"Task {task_id} failed via internal bridge: {result[1]}")
+            return result
         
         # Fall back to HTTP
+        logger.debug(f"Polling task {task_id} status via HTTP (max wait: {self.max_wait_time}s)")
         start_time = time.time()
+        poll_count = 0
         
         while True:
             try:
+                poll_count += 1
+                elapsed = time.time() - start_time
+                
                 # Check timeout
-                if time.time() - start_time > self.max_wait_time:
-                    return False, "Task timeout"
+                if elapsed > self.max_wait_time:
+                    error_msg = f"Task timeout after {elapsed:.1f}s (max: {self.max_wait_time}s)"
+                    logger.error(error_msg)
+                    return False, error_msg
                 
                 # Query task status
                 url = f"{self.api_url}/api/task/{task_id}"
@@ -231,24 +252,37 @@ class ImageGenerator:
                 result = response.json()
                 
                 if result.get("code") != 200:
-                    return False, result.get("message", "Unknown error")
+                    error_msg = result.get("message", "Unknown error")
+                    logger.error(f"Task query returned error: {error_msg}")
+                    return False, error_msg
                 
                 status = result.get("data", {}).get("status")
                 
                 if status == "completed":
+                    logger.info(f"✓ Task {task_id} completed after {elapsed:.1f}s ({poll_count} polls)")
                     return True, None
                 elif status == "failed":
-                    error_msg = result.get("data", {}).get("error_message", "Task failed")
+                    error_msg = result.get("data", {}).get("error_message", "Task failed without error message")
+                    logger.error(f"Task {task_id} failed: {error_msg}")
                     return False, error_msg
                 elif status in ["pending", "processing"]:
                     # Still processing, wait and retry
-                    logger.debug(f"Task {task_id} status: {status}")
+                    if poll_count % 5 == 0:  # Log every 5th poll
+                        logger.debug(f"Task {task_id} status: {status} (elapsed: {elapsed:.1f}s, poll #{poll_count})")
                     time.sleep(self.poll_interval)
                 else:
-                    return False, f"Unknown status: {status}"
+                    error_msg = f"Unknown status: {status}"
+                    logger.warning(error_msg)
+                    return False, error_msg
                     
-            except Exception as e:
+            except requests.exceptions.Timeout as e:
+                logger.warning(f"Task status query timeout: {str(e)}")
+                return False, f"Status query timeout: {str(e)}"
+            except requests.exceptions.RequestException as e:
                 logger.error(f"Error polling task status: {str(e)}")
+                return False, f"Polling error: {str(e)}"
+            except Exception as e:
+                logger.error(f"Unexpected error polling task status: {str(e)}", exc_info=True)
                 return False, str(e)
     
     def _download_image(
@@ -267,40 +301,52 @@ class ImageGenerator:
         try:
             # Use internal bridge if available
             if self.use_internal_bridge and self.internal_bridge:
-                logger.debug("Downloading image via internal bridge")
+                logger.debug(f"Downloading image for task {task_id} via internal bridge")
                 image_bytes = self.internal_bridge.get_task_result(task_id)
                 
                 if image_bytes:
+                    logger.debug(f"Received {len(image_bytes)} bytes from internal bridge")
                     # Save and resize image
                     image = Image.open(BytesIO(image_bytes))
+                    logger.debug(f"Image opened successfully, original size: {image.size}")
                     image = self._resize_image(image, target_width, target_height)
                     image.save(output_path)
+                    logger.debug(f"Image saved to {output_path}")
                     return True
                 else:
-                    logger.error("Failed to get image data from internal bridge")
+                    logger.error("Failed to get image data from internal bridge (received None)")
                     return False
             
             # Fall back to HTTP
             url = f"{self.api_url}/api/result/{task_id}"
+            logger.debug(f"Downloading image via HTTP from {url}")
             response = requests.get(url, timeout=60)
+            logger.debug(f"Download response status: {response.status_code}")
             response.raise_for_status()
             
             # Check if response is image
             content_type = response.headers.get('content-type', '')
+            content_length = len(response.content)
+            logger.debug(f"Content type: {content_type}, size: {content_length} bytes")
             
             if 'image' in content_type:
                 # Save and resize image
                 image = Image.open(BytesIO(response.content))
+                logger.debug(f"Image opened successfully, original size: {image.size}")
                 image = self._resize_image(image, target_width, target_height)
                 image.save(output_path)
+                logger.debug(f"Image saved to {output_path}")
                 return True
             else:
-                # Not an image, probably still processing
-                logger.error(f"Expected image but got: {content_type}")
+                # Not an image, probably still processing or error
+                logger.error(f"Expected image content but received: {content_type}")
+                if logger.isEnabledFor(logging.DEBUG):
+                    preview = response.text[:200] if hasattr(response, 'text') else str(response.content[:200])
+                    logger.debug(f"Response preview: {preview}")
                 return False
                 
         except Exception as e:
-            logger.error(f"Failed to download image: {str(e)}")
+            logger.error(f"Failed to download image for task {task_id}: {str(e)}", exc_info=True)
             return False
     
     def _resize_image(self, image: Image.Image, target_width: int, target_height: int) -> Image.Image:
@@ -315,11 +361,17 @@ class ImageGenerator:
         Returns:
             Resized image
         """
-        if image.size == (target_width, target_height):
+        current_size = image.size
+        target_size = (target_width, target_height)
+        
+        if current_size == target_size:
+            logger.debug(f"Image already at target size: {target_size}")
             return image
         
-        logger.debug(f"Resizing image from {image.size} to {target_width}x{target_height}")
-        return image.resize((target_width, target_height), Image.Resampling.LANCZOS)
+        logger.debug(f"Resizing image: {current_size} → {target_size}")
+        resized = image.resize(target_size, Image.Resampling.LANCZOS)
+        logger.debug("Image resized successfully using LANCZOS resampling")
+        return resized
     
     def _create_placeholder_image(
         self, 
@@ -339,7 +391,9 @@ class ImageGenerator:
         """
         from PIL import ImageDraw
 
-        logger.info(f"Creating placeholder image at {output_path}")
+        logger.info(f"Creating placeholder image: {width}x{height}")
+        logger.debug(f"Placeholder will be saved to: {output_path}")
+        logger.debug(f"Error message: {error_msg[:100]}...")
         
         # Create gray placeholder
         image = Image.new('RGB', (width, height), color='#E0E0E0')
@@ -365,4 +419,5 @@ class ImageGenerator:
         draw.text((x, y), text, fill='#757575')
         
         image.save(output_path)
+        logger.debug(f"Placeholder image saved successfully")
 

@@ -13,23 +13,32 @@ class Config:
     
     def __init__(self):
         """Initialize configuration from .env file or environment variables"""
-        # Load .env file from project root if it exists (optional)
+        # Load .env file from slide-gen directory first (for standalone mode)
         # __file__ is slide-gen/src/utils/config.py
-        # Go up 4 levels: utils -> src -> slide-gen -> project_root
-        env_path = Path(__file__).parent.parent.parent.parent / ".env"
-        if env_path.exists():
-            load_dotenv(env_path)
-        # If .env doesn't exist, environment variables should already be set by the parent application
+        # Go up 2 levels: utils -> src -> slide-gen
+        slide_gen_env_path = Path(__file__).parent.parent.parent / ".env"
+        if slide_gen_env_path.exists():
+            load_dotenv(slide_gen_env_path, override=True)
         
-        # LLM Configuration
-        self.llm_api_key: str = os.getenv("LLM_API_KEY", "")
-        self.llm_api_url: str = os.getenv("LLM_API_URL", "https://api.openai.com/v1/chat/completions")
-        self.llm_model: str = os.getenv("LLM_MODEL", "gpt-4")
+        # Also load from project root if it exists (for Flask service mode)
+        # Go up 3 more levels: slide-gen -> agents -> backend -> project_root
+        project_env_path = Path(__file__).parent.parent.parent.parent.parent / ".env"
+        if project_env_path.exists():
+            load_dotenv(project_env_path, override=False)  # Don't override slide-gen specific settings
         
-        # Image Generation Configuration
-        self.image_api_key: str = os.getenv("IMAGE_API_KEY", "")
-        self.image_api_url: str = os.getenv("IMAGE_API_URL", "")
-        self.image_model: str = os.getenv("IMAGE_MODEL", "stable-diffusion-xl")
+        # LLM Configuration - prioritize SLIDE_* prefixed variables, fall back to non-prefixed
+        self.llm_api_key: str = os.getenv("SLIDE_LLM_API_KEY") or os.getenv("LLM_API_KEY", "")
+        self.llm_api_url: str = os.getenv("SLIDE_LLM_API_URL") or os.getenv("LLM_API_URL", "https://api.openai.com/v1/chat/completions")
+        self.llm_model: str = os.getenv("SLIDE_LLM_MODEL") or os.getenv("LLM_MODEL", "gpt-4")
+        
+        # Image Generation Configuration - prioritize SLIDE_* prefixed variables, fall back to non-prefixed
+        self.image_api_key: str = os.getenv("SLIDE_IMAGE_API_KEY") or os.getenv("IMAGE_API_KEY", "")
+        self.image_api_url: str = os.getenv("SLIDE_IMAGE_API_URL") or os.getenv("IMAGE_API_URL", "")
+        self.image_model: str = os.getenv("SLIDE_IMAGE_MODEL") or os.getenv("IMAGE_MODEL", "stable-diffusion-xl")
+        
+        # Bridge Configuration - USE_BRIDGE controls whether to use internal bridge or HTTP calls
+        # Default to False for standalone execution (main.py), set to True when called from Flask
+        self.use_bridge: bool = os.getenv("USE_BRIDGE", "false").lower() in ["true", "1", "yes"]
         
         # Generation Settings
         self.default_timeout: int = int(os.getenv("DEFAULT_TIMEOUT", "60"))
@@ -58,13 +67,13 @@ class Config:
             tuple: (is_valid, error_message)
         """
         if not self.llm_api_key:
-            return False, "LLM_API_KEY is required (set via SLIDE_LLM_API_KEY in main config.py)"
+            return False, "LLM_API_KEY is required (set via SLIDE_LLM_API_KEY in .env file)"
         
         if not self.image_api_key:
-            return False, "IMAGE_API_KEY is required (set via SLIDE_IMAGE_API_KEY in main config.py)"
+            return False, "IMAGE_API_KEY is required (set via SLIDE_IMAGE_API_KEY in .env file)"
         
         if not self.image_api_url:
-            return False, "IMAGE_API_URL is required (set via SLIDE_IMAGE_API_URL in main config.py)"
+            return False, "IMAGE_API_URL is required (set via SLIDE_IMAGE_API_URL in .env file)"
         
         return True, None
 

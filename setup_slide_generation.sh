@@ -86,3 +86,4 @@ echo "2. 启动服务: python app.py"
 echo "3. 查看日志确认Slide生成服务初始化成功"
 echo ""
 
+

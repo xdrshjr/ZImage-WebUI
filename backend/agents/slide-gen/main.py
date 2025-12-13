@@ -2,10 +2,16 @@
 Main entry point for intelligent slide generation system
 """
 
+import os
 import logging
 import sys
 from pathlib import Path
 from colorlog import ColoredFormatter
+
+# Set USE_BRIDGE to false for standalone execution (before importing any modules)
+# This ensures the agent uses HTTP API calls instead of the internal bridge
+os.environ["USE_BRIDGE"] = "false"
+
 from src.agent.graph import SlideGenerationAgent
 
 
@@ -43,7 +49,7 @@ def main():
     # Hardcoded test parameters
     params = {
         "base_text": "Introduction to Artificial Intelligence and its applications in modern technology",
-        "num_slides": 6,
+        "num_slides": 2,
         "aspect_ratio": "16:9",
         "style": "professional",
         "content_richness": "moderate"

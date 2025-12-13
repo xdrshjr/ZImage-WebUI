@@ -5,38 +5,38 @@
     <h1 class="slide-title">{{ title }}</h1>
     
     <div class="content-area">
-        <div style="display: flex; gap: 70px; width: 100%; height: 100%; padding: 0 60px;">
+        <div style="display: flex; gap: 60px; width: 100%; height: 100%;">
             <!-- Left Column -->
-            <div style="flex: 1; position: relative; min-height: 100%;">
+            <div style="flex: 1; display: flex; flex-direction: column; justify-content: flex-start;">
                 {% for block in content_blocks %}
                     {% if block.type == 'text' and block.position.x < width // 2 %}
-                        <div style="padding-right: 20px; margin-bottom: 25px;">
+                        <div style="margin-bottom: 30px;">
                             {% if block.section_title %}
                                 <div class="section-header">{{ block.section_title }}</div>
                             {% endif %}
                             <div class="text-content">{{ block.content }}</div>
                         </div>
                     {% elif block.type == 'image_placeholder' and block.image_path and block.position.x < width // 2 %}
-                        <div style="width: 100%; max-width: calc(100% - 40px); height: auto; position: relative; margin: 20px 20px; padding: 12px; box-sizing: border-box; border-radius: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);">
-                            <img src="{{ block.image_path }}" alt="Slide image" style="width: 100%; height: auto; border-radius: 8px; display: block;">
+                        <div class="image-container" style="position: relative; width: 100%; height: 350px; margin-bottom: 30px; max-width: none;">
+                            <img src="{{ block.image_path }}" alt="Slide image">
                         </div>
                     {% endif %}
                 {% endfor %}
             </div>
             
             <!-- Right Column -->
-            <div style="flex: 1; position: relative; min-height: 100%;">
+            <div style="flex: 1; display: flex; flex-direction: column; justify-content: flex-start;">
                 {% for block in content_blocks %}
                     {% if block.type == 'text' and block.position.x >= width // 2 %}
-                        <div style="padding-left: 20px; margin-bottom: 25px;">
+                        <div style="margin-bottom: 30px;">
                             {% if block.section_title %}
                                 <div class="section-header">{{ block.section_title }}</div>
                             {% endif %}
                             <div class="text-content">{{ block.content }}</div>
                         </div>
                     {% elif block.type == 'image_placeholder' and block.image_path and block.position.x >= width // 2 %}
-                        <div style="width: 100%; max-width: calc(100% - 40px); height: auto; position: relative; margin: 20px 20px; padding: 12px; box-sizing: border-box; border-radius: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);">
-                            <img src="{{ block.image_path }}" alt="Slide image" style="width: 100%; height: auto; border-radius: 8px; display: block;">
+                         <div class="image-container" style="position: relative; width: 100%; height: 350px; margin-bottom: 30px; max-width: none;">
+                            <img src="{{ block.image_path }}" alt="Slide image">
                         </div>
                     {% endif %}
                 {% endfor %}

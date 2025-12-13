@@ -12,184 +12,131 @@
         }
         
         body {
-            font-family: 'Georgia', 'Times New Roman', serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
             width: {{ width }}px;
             height: {{ height }}px;
             overflow: hidden;
             position: relative;
+            background-color: #f5f5f7; /* Very light gray, typical of Apple interfaces */
         }
         
         .slide {
             width: 100%;
             height: 100%;
             position: relative;
-            padding: 80px;
+            padding: 60px 80px;
             display: flex;
             flex-direction: column;
+            background-color: #ffffff;
+            color: #1d1d1f;
         }
         
-        /* Style-specific backgrounds and colors */
-        .slide.professional {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #ffffff;
-        }
-        
-        .slide.creative {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: #ffffff;
-        }
-        
-        .slide.minimal {
-            background: #ffffff;
-            color: #2d3436;
-        }
-        
+        /* Styles */
+        .slide.professional,
+        .slide.creative,
+        .slide.minimal,
         .slide.academic {
+            /* Unifying styles to the Apple-like look as requested, overriding previous ugly styles */
             background: #ffffff;
-            color: #1a1a1a;
-            border: 2px solid #d0d0d0;
+            color: #1d1d1f;
         }
         
-        /* Academic slide title styling - clean and professional */
+        /* Typography */
         h1.slide-title {
             font-size: 56px;
-            font-weight: 600;
-            margin-bottom: 50px;
-            line-height: 1.3;
-            letter-spacing: -0.5px;
+            font-weight: 700;
+            letter-spacing: -0.015em;
+            margin-bottom: 40px;
+            line-height: 1.1;
+            color: #1d1d1f;
+            
+            /* Beautiful Vertical Bar Icon Styling */
+            position: relative;
+            padding-left: 28px;
         }
         
-        .slide.minimal h1.slide-title {
-            color: #2c3e50;
-            border-bottom: 3px solid #3498db;
-            padding-bottom: 20px;
-        }
-        
-        .slide.academic h1.slide-title {
-            color: #1a1a1a;
-            font-size: 52px;
-            font-weight: 600;
-            border-bottom: 2px solid #e0e0e0;
-            padding-bottom: 25px;
-            margin-bottom: 45px;
-        }
-        
-        .slide.professional h1.slide-title,
-        .slide.creative h1.slide-title {
-            font-size: 64px;
+        h1.slide-title::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.12em; /* Optically aligned with the text cap height */
+            width: 8px;
+            height: 0.75em;
+            background: linear-gradient(180deg, #0071e3 0%, #4c9eff 100%); /* Apple Blue Gradient */
+            border-radius: 4px;
         }
         
         .content-area {
             flex: 1;
             display: flex;
-            gap: 50px;
+            gap: 40px;
             position: relative;
         }
         
-        /* Enhanced text content styling for academic look */
         .text-content {
-            font-size: 26px;
-            line-height: 1.7;
+            font-size: 32px;
+            line-height: 1.4;
+            font-weight: 400;
+            color: #1d1d1f;
             white-space: pre-wrap;
-            font-family: 'Georgia', 'Times New Roman', serif;
+            text-align: left; /* Ensure left alignment for all text content */
         }
         
-        .slide.minimal .text-content {
-            color: #4a4a4a;
+        /* Section Headers */
+        .section-header {
             font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #86868b; /* Apple gray for subheaders */
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-align: left;
         }
         
-        .slide.academic .text-content {
-            color: #2d2d2d;
-            font-size: 24px;
-            line-height: 1.8;
-            text-align: justify;
+        /* Lists */
+        ul, ol {
+            margin-left: 1.2em;
+            margin-top: 0.5em;
+            text-align: left;
         }
         
-        .slide.professional .text-content,
-        .slide.creative .text-content {
-            font-size: 30px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        li {
+            margin-bottom: 0.5em;
+            padding-left: 0.2em;
         }
         
-        /* Image container with proper margins and styling */
+        /* Image Container */
         .image-container {
             position: absolute;
             overflow: hidden;
-            border-radius: 8px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-            /* Force minimum margins from edges - CRITICAL */
-            max-width: calc(100% - 120px) !important;
-            max-height: calc(100% - 160px) !important;
-        }
-        
-        .slide.academic .image-container {
-            border: 1px solid #e0e0e0;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            border-radius: 12px; /* Apple-like rounded corners */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Soft shadow */
+            background-color: #f5f5f7;
+            /* Ensure images don't overflow the slide boundaries */
+            max-width: calc(100% - 160px); 
+            max-height: calc(100% - 140px);
         }
         
         .image-container img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            /* Add internal padding to ensure image doesn't touch container edges */
-            padding: 8px;
-            box-sizing: border-box;
+            object-fit: cover; /* Ensures image fills the container beautifully */
+            display: block;
         }
         
-        /* Utility classes */
         .text-block {
             position: absolute;
         }
-        
-        ul, ol {
-            margin-left: 45px;
-            margin-top: 15px;
+
+        /* Helper for specific layouts */
+        .center-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
         }
         
-        li {
-            margin-bottom: 18px;
-            line-height: 1.6;
-        }
-        
-        /* Academic list styling */
-        .slide.academic ul, .slide.academic ol {
-            margin-left: 40px;
-        }
-        
-        .slide.academic li {
-            margin-bottom: 20px;
-        }
-        
-        /* Section headers within content */
-        .content-section {
-            margin-bottom: 25px;
-        }
-        
-        .section-header {
-            font-size: 28px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            color: #2c3e50;
-        }
-        
-        .slide.academic .section-header {
-            font-size: 26px;
-            color: #1a1a1a;
-            border-left: 4px solid #3498db;
-            padding-left: 15px;
-            margin-bottom: 10px;
-        }
-        
-        .slide.professional .section-header,
-        .slide.creative .section-header {
-            font-size: 30px;
-        }
-        
-        .slide.minimal .section-header {
-            font-size: 28px;
-            color: #2c3e50;
-        }
     </style>
 </head>
 <body>

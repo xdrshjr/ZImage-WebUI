@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 from typing import Optional, Tuple
 import requests
-from PIL import Image
+from PIL import Image, ImageOps
 from io import BytesIO
 from src.utils.config import config
 
@@ -351,7 +351,7 @@ class ImageGenerator:
     
     def _resize_image(self, image: Image.Image, target_width: int, target_height: int) -> Image.Image:
         """
-        Resize image to target dimensions while maintaining quality
+        Resize image to target dimensions using smart cropping (fit)
         
         Args:
             image: PIL Image object
@@ -359,7 +359,7 @@ class ImageGenerator:
             target_height: Target height
             
         Returns:
-            Resized image
+            Resized and cropped image
         """
         current_size = image.size
         target_size = (target_width, target_height)
@@ -368,9 +368,16 @@ class ImageGenerator:
             logger.debug(f"Image already at target size: {target_size}")
             return image
         
-        logger.debug(f"Resizing image: {current_size} → {target_size}")
-        resized = image.resize(target_size, Image.Resampling.LANCZOS)
-        logger.debug("Image resized successfully using LANCZOS resampling")
+        logger.debug(f"Smart resizing image: {current_size} → {target_size}")
+        # ImageOps.fit crops and resizes the image to fill the requested size 
+        # while maintaining aspect ratio, centering the crop.
+        resized = ImageOps.fit(
+            image, 
+            target_size, 
+            method=Image.Resampling.LANCZOS, 
+            centering=(0.5, 0.5)
+        )
+        logger.debug("Image resized and cropped successfully")
         return resized
     
     def _create_placeholder_image(
@@ -420,4 +427,3 @@ class ImageGenerator:
         
         image.save(output_path)
         logger.debug(f"Placeholder image saved successfully")
-

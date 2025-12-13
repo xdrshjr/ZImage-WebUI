@@ -10,6 +10,7 @@ from src.agent.state import SlideGenerationState
 from src.agent.nodes import SlideGenerationNodes
 from src.renderer.image_exporter import ImageExporter
 from src.renderer.pdf_exporter import PDFExporter
+from src.renderer.ppt_exporter import PPTExporter
 from src.utils.validators import InputValidator
 from src.utils.template_validator import TemplateValidator
 from src.utils.config import config
@@ -25,6 +26,7 @@ class SlideGenerationAgent:
         self.nodes = SlideGenerationNodes()
         self.image_exporter = ImageExporter()
         self.pdf_exporter = PDFExporter()
+        self.ppt_exporter = PPTExporter()
         self.workflow = self._build_workflow()
     
     def _build_workflow(self) -> StateGraph:
@@ -70,7 +72,7 @@ class SlideGenerationAgent:
     
     def _export_final_outputs(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Export final outputs (slide images and PDF)
+        Export final outputs (slide images, PDF, and PPT)
         
         Args:
             state: Current workflow state
@@ -153,6 +155,32 @@ class SlideGenerationAgent:
                 logger.warning("  ⚠ No slide images available for PDF generation")
                 state['errors'].append("No slide images available for PDF generation")
             
+            # Generate PowerPoint presentation
+            logger.info("→ Step 3.3: Generating PowerPoint presentation (PPTX)")
+            logger.info("Converting HTML slides to editable PowerPoint format...")
+            
+            if state['slides']:
+                ppt_path = config.output_dir / "final_presentation.pptx"
+                
+                logger.debug(f"Preparing {len(state['slides'])} slides for PPT export")
+                
+                # Export slides to PPT
+                success = self.ppt_exporter.export_to_ppt(
+                    slides_data=state['slides'],
+                    output_path=ppt_path,
+                    aspect_ratio=state['aspect_ratio']
+                )
+                
+                if success:
+                    state['ppt_path'] = str(ppt_path)
+                    logger.info(f"  ✓ PowerPoint generated successfully: {ppt_path.name}")
+                else:
+                    logger.error("  ✗ PowerPoint generation failed")
+                    state['errors'].append("PowerPoint generation failed")
+            else:
+                logger.warning("  ⚠ No slides available for PowerPoint generation")
+                state['errors'].append("No slides available for PowerPoint generation")
+            
         except Exception as e:
             error_msg = f"Final export failed: {str(e)}"
             logger.error(error_msg)
@@ -168,7 +196,8 @@ class SlideGenerationAgent:
         num_slides: int,
         aspect_ratio: str,
         style: str,
-        content_richness: str
+        content_richness: str,
+        color_scheme: str = "light_blue"
     ) -> Dict[str, Any]:
         """
         Generate presentation slides
@@ -179,6 +208,7 @@ class SlideGenerationAgent:
             aspect_ratio: Slide aspect ratio
             style: Visual style
             content_richness: Content detail level
+            color_scheme: Color scheme for slides
             
         Returns:
             Result dictionary with output paths
@@ -189,7 +219,8 @@ class SlideGenerationAgent:
             'num_slides': num_slides,
             'aspect_ratio': aspect_ratio,
             'style': style,
-            'content_richness': content_richness
+            'content_richness': content_richness,
+            'color_scheme': color_scheme
         }
         
         valid, error = InputValidator.validate_parameters(params)
@@ -209,6 +240,7 @@ class SlideGenerationAgent:
         logger.info(f"Aspect Ratio: {aspect_ratio}")
         logger.info(f"Style: {style}")
         logger.info(f"Content Richness: {content_richness}")
+        logger.info(f"Color Scheme: {color_scheme}")
         logger.info("=" * 60)
         
         # Initialize state
@@ -218,11 +250,13 @@ class SlideGenerationAgent:
             'aspect_ratio': aspect_ratio,
             'style': style,
             'content_richness': content_richness,
+            'color_scheme': color_scheme,
             'outline': [],
             'current_slide_index': 0,
             'slides': [],
             'output_dir': str(config.output_dir),
             'pdf_path': None,
+            'ppt_path': None,
             'errors': []
         }
         
@@ -242,6 +276,7 @@ class SlideGenerationAgent:
             'success': len(final_state.get('errors', [])) == 0,
             'output_path': str(config.output_dir),
             'pdf_path': final_state.get('pdf_path'),
+            'ppt_path': final_state.get('ppt_path'),
             'slides_generated': len(final_state.get('slides', [])),
             'errors': final_state.get('errors', [])
         }
@@ -256,6 +291,12 @@ class SlideGenerationAgent:
                 template = slide.get('template_type', 'unknown')
                 title = slide.get('layout', {}).get('title', 'Untitled')
                 logger.info(f"  Slide {slide_num}: [{template}] {title}")
+            logger.info("")
+            logger.info("Output Files:")
+            if result.get('pdf_path'):
+                logger.info(f"  PDF: {result['pdf_path']}")
+            if result.get('ppt_path'):
+                logger.info(f"  PPT: {result['ppt_path']}")
         else:
             logger.info("⚠ SLIDE GENERATION COMPLETED WITH ERRORS")
             for error in result['errors']:

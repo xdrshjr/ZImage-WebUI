@@ -42,6 +42,7 @@
     "generating": "Generating...",
     "preview": "Preview",
     "download": "Download",
+    "downloading": "Downloading...",
     "close": "Close",
     "cancel": "Cancel",
     "save": "Save",
@@ -113,6 +114,7 @@
     "aspectRatio": "Aspect Ratio",
     "style": "Visual Style",
     "contentRichness": "Content Detail",
+    "colorScheme": "Color Scheme",
     "parameters": "Slide Parameters"
   },
   "slideAspectRatio": {
@@ -131,12 +133,20 @@
     "moderate": "Moderate",
     "detailed": "Detailed"
   },
+  "slideColorScheme": {
+    "light_blue": "Light Blue (Bright)",
+    "dark_slate": "Dark Slate (Dark)",
+    "warm_cream": "Warm Cream (Cozy)",
+    "dark_navy": "Dark Navy (Dark)",
+    "soft_green": "Soft Green (Fresh)"
+  },
   "slideTaskList": {
     "title": "Slide Tasks",
     "empty": "Generated slides will appear here",
     "emptyHint": "Submit a slide generation task and results will be displayed here",
     "slidesGenerated": "Generated {{count}} slide(s)",
     "downloadPdf": "Download PDF",
+    "downloadPptx": "Download PPTX",
     "downloadSlide": "Download Slide {{number}}",
     "viewSlide": "View Slide {{number}}"
   },
@@ -152,6 +162,7 @@
     "generating": "Generating slides, please wait...",
     "baseTextRequired": "Please enter content/topic",
     "pdfDownloaded": "PDF downloaded",
+    "pptxDownloaded": "PPTX downloaded",
     "slideDownloaded": "Slide downloaded",
     "downloadFailed": "Download failed"
   }

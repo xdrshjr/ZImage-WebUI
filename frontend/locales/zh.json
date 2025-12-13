@@ -42,6 +42,7 @@
     "generating": "生成中...",
     "preview": "预览",
     "download": "下载",
+    "downloading": "下载中...",
     "close": "关闭",
     "cancel": "取消",
     "save": "保存",
@@ -113,6 +114,7 @@
     "aspectRatio": "幻灯片比例",
     "style": "视觉风格",
     "contentRichness": "内容详细度",
+    "colorScheme": "配色方案",
     "parameters": "幻灯片参数"
   },
   "slideAspectRatio": {
@@ -131,12 +133,20 @@
     "moderate": "适中",
     "detailed": "详细"
   },
+  "slideColorScheme": {
+    "light_blue": "浅蓝 (明亮)",
+    "dark_slate": "深灰 (深色)",
+    "warm_cream": "暖奶油 (温馨)",
+    "dark_navy": "深蓝 (深色)",
+    "soft_green": "柔绿 (清新)"
+  },
   "slideTaskList": {
     "title": "幻灯片任务",
     "empty": "这里会显示生成的幻灯片",
     "emptyHint": "提交幻灯片生成任务后，结果将显示在这里",
     "slidesGenerated": "已生成 {{count}} 张幻灯片",
     "downloadPdf": "下载 PDF",
+    "downloadPptx": "下载 PPTX",
     "downloadSlide": "下载第 {{number}} 张",
     "viewSlide": "查看第 {{number}} 张"
   },
@@ -152,6 +162,7 @@
     "generating": "正在生成幻灯片，请稍候...",
     "baseTextRequired": "请输入内容/主题",
     "pdfDownloaded": "PDF已下载",
+    "pptxDownloaded": "PPTX已下载",
     "slideDownloaded": "幻灯片已下载",
     "downloadFailed": "下载失败"
   }

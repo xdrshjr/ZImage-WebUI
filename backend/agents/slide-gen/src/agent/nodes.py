@@ -329,17 +329,20 @@ class SlideGenerationNodes:
         slide_data = state['slides'][current_idx]
         slide_number = slide_data['slide_number']
         template_type = slide_data.get('template_type', 'unknown')
+        color_scheme = state.get('color_scheme', 'light_blue')
         
         logger.info(f"→ Step 2.4: Rendering HTML for slide {slide_number}")
         logger.debug(f"  Template type: {template_type}")
         logger.debug(f"  Style: {state['style']}")
         logger.debug(f"  Aspect ratio: {state['aspect_ratio']}")
+        logger.debug(f"  Color scheme: {color_scheme}")
         
         try:
             html_path = self.html_renderer.render_slide(
                 slide_data=slide_data,
                 style=state['style'],
-                aspect_ratio=state['aspect_ratio']
+                aspect_ratio=state['aspect_ratio'],
+                color_scheme=color_scheme
             )
             
             # Update slide data

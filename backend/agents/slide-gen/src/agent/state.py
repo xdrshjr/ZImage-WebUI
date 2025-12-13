@@ -46,6 +46,7 @@ class SlideGenerationState(TypedDict):
     aspect_ratio: str
     style: str
     content_richness: str
+    color_scheme: str
     
     # Workflow state
     outline: List[SlideOutlineEntry]
@@ -55,6 +56,7 @@ class SlideGenerationState(TypedDict):
     # Output paths
     output_dir: str
     pdf_path: Optional[str]
+    ppt_path: Optional[str]
     
     # Error tracking
     errors: List[str]

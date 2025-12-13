@@ -268,13 +268,17 @@ def generate_slide():
         aspect_ratio (可选): 幻灯片比例，默认16:9，可选4:3, 16:10
         style (可选): 视觉风格，默认professional，可选creative, minimal, academic
         content_richness (可选): 内容详细程度，默认moderate，可选concise, detailed
+        color_scheme (可选): 配色方案，默认light_blue，可选dark_slate, warm_cream, dark_navy, soft_green
         
     Returns:
         JSON: 任务ID和状态
     """
     try:
+        logger.debug("收到Slide生成请求")
+        
         # 检查slide生成功能是否启用
         if not config.ENABLE_SLIDE_GENERATION:
+            logger.warning("Slide生成功能未启用")
             return create_error_response(503, "Slide生成功能未启用")
         
         # 检查生成器是否就绪
@@ -285,11 +289,15 @@ def generate_slide():
         # 获取请求数据
         data = request.get_json()
         if not data:
+            logger.warning("请求体为空")
             return create_error_response(400, "请求体不能为空")
+        
+        logger.debug(f"请求参数: {data}")
         
         # 验证必填参数
         base_text = data.get('base_text')
         if not base_text or not isinstance(base_text, str) or len(base_text.strip()) == 0:
+            logger.warning("base_text参数无效或为空")
             return create_error_response(400, "base_text参数必填且不能为空")
         
         # 获取可选参数
@@ -297,34 +305,48 @@ def generate_slide():
         aspect_ratio = data.get('aspect_ratio', '16:9')
         style = data.get('style', 'professional')
         content_richness = data.get('content_richness', 'moderate')
+        color_scheme = data.get('color_scheme', 'light_blue')
+        
+        logger.info(f"Slide生成参数 - 主题: {base_text[:50]}..., 数量: {num_slides}, 配色: {color_scheme}")
         
         # 参数验证
         if not isinstance(num_slides, int) or num_slides < 1 or num_slides > 50:
+            logger.warning(f"num_slides参数无效: {num_slides}")
             return create_error_response(400, "num_slides参数必须是1-50之间的整数")
         
         if aspect_ratio not in ['16:9', '4:3', '16:10']:
+            logger.warning(f"aspect_ratio参数无效: {aspect_ratio}")
             return create_error_response(400, "aspect_ratio参数必须是16:9, 4:3或16:10")
         
         if style not in ['professional', 'creative', 'minimal', 'academic']:
+            logger.warning(f"style参数无效: {style}")
             return create_error_response(400, "style参数必须是professional, creative, minimal或academic")
         
         if content_richness not in ['concise', 'moderate', 'detailed']:
+            logger.warning(f"content_richness参数无效: {content_richness}")
             return create_error_response(400, "content_richness参数必须是concise, moderate或detailed")
+        
+        if color_scheme not in ['light_blue', 'dark_slate', 'warm_cream', 'dark_navy', 'soft_green']:
+            logger.warning(f"color_scheme参数无效: {color_scheme}")
+            return create_error_response(400, "color_scheme参数必须是light_blue, dark_slate, warm_cream, dark_navy或soft_green")
         
         # 提交任务
         try:
+            logger.debug("提交任务到队列管理器")
+            
             task_id = slide_task_queue_manager.submit_task(
                 base_text=base_text.strip(),
                 num_slides=num_slides,
                 aspect_ratio=aspect_ratio,
                 style=style,
-                content_richness=content_richness
+                content_richness=content_richness,
+                color_scheme=color_scheme
             )
             
             # 获取任务信息
             task = slide_task_queue_manager.get_task(task_id)
             
-            logger.info(f"✓ Slide生成任务已提交: {task_id}")
+            logger.info(f"✓ Slide生成任务已提交: {task_id} (配色方案: {color_scheme}, 队列位置: {task.queue_position})")
             
             return create_response(data={
                 "task_id": task_id,
@@ -333,10 +355,11 @@ def generate_slide():
             })
             
         except queue.Full:
+            logger.warning("任务队列已满，拒绝新任务")
             return create_error_response(503, "任务队列已满，请稍后重试")
             
     except Exception as e:
-        logger.error(f"提交Slide任务失败: {e}", exc_info=True)
+        logger.error(f"✗ 提交Slide任务失败: {e}", exc_info=True)
         return create_error_response(500, f"服务器内部错误: {str(e)}")
 
 
@@ -384,6 +407,7 @@ def get_slide_result(task_id: str):
         task = slide_task_queue_manager.get_task(task_id)
         
         if not task:
+            logger.warning(f"查询不存在的任务: {task_id}")
             return create_error_response(404, "任务不存在")
         
         # 如果任务未完成，返回状态信息
@@ -393,6 +417,8 @@ def get_slide_result(task_id: str):
                 SlideTaskStatus.PROCESSING: "任务处理中",
                 SlideTaskStatus.FAILED: "任务处理失败"
             }.get(task.status, "未知状态")
+            
+            logger.debug(f"任务 {task_id} 尚未完成，状态: {task.status.value}")
             
             return create_response(data={
                 "task_id": task_id,
@@ -406,7 +432,7 @@ def get_slide_result(task_id: str):
             return create_error_response(404, "PDF文件不存在")
         
         # 返回PDF文件
-        logger.info(f"下载Slide PDF: {task_id}")
+        logger.info(f"✓ 下载Slide PDF: {task_id} -> {Path(task.pdf_path).name}")
         return send_file(
             task.pdf_path,
             mimetype='application/pdf',
@@ -415,7 +441,60 @@ def get_slide_result(task_id: str):
         )
         
     except Exception as e:
-        logger.error(f"获取Slide结果失败: {e}", exc_info=True)
+        logger.error(f"✗ 获取Slide PDF失败: {task_id} - {e}", exc_info=True)
+        return create_error_response(500, f"服务器内部错误: {str(e)}")
+
+
+@app.route('/api/slide/result/<task_id>/pptx', methods=['GET'])
+def get_slide_pptx_result(task_id: str):
+    """
+    获取Slide生成结果PPTX (PowerPoint)
+    
+    Args:
+        task_id: 任务ID
+        
+    Returns:
+        PPTX文件（如果完成）或状态信息
+    """
+    try:
+        task = slide_task_queue_manager.get_task(task_id)
+        
+        if not task:
+            logger.warning(f"查询不存在的任务: {task_id}")
+            return create_error_response(404, "任务不存在")
+        
+        # 如果任务未完成，返回状态信息
+        if task.status != SlideTaskStatus.COMPLETED:
+            status_msg = {
+                SlideTaskStatus.PENDING: "任务排队中",
+                SlideTaskStatus.PROCESSING: "任务处理中",
+                SlideTaskStatus.FAILED: "任务处理失败"
+            }.get(task.status, "未知状态")
+            
+            logger.debug(f"任务 {task_id} 尚未完成，状态: {task.status.value}")
+            
+            return create_response(data={
+                "task_id": task_id,
+                "status": task.status.value,
+                "message": status_msg
+            })
+        
+        # 检查PPTX文件是否存在
+        if not task.ppt_path or not Path(task.ppt_path).exists():
+            logger.warning(f"任务 {task_id} 的PPTX文件不存在: {task.ppt_path}")
+            return create_error_response(404, "PPTX文件不存在")
+        
+        # 返回PPTX文件
+        logger.info(f"✓ 下载Slide PPTX: {task_id} -> {Path(task.ppt_path).name}")
+        return send_file(
+            task.ppt_path,
+            mimetype='application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            as_attachment=True,
+            download_name=f"presentation_{task_id}.pptx"
+        )
+        
+    except Exception as e:
+        logger.error(f"✗ 获取Slide PPTX失败: {task_id} - {e}", exc_info=True)
         return create_error_response(500, f"服务器内部错误: {str(e)}")
 
 

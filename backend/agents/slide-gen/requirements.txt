@@ -23,6 +23,9 @@ playwright>=1.40.0
 weasyprint>=60.1
 PyPDF2>=3.0.1
 
+# PPT generation
+python-pptx>=0.6.21
+
 # Logging and utilities
 colorlog>=6.8.0
 

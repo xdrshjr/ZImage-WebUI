@@ -137,6 +137,7 @@ export interface SlideGenerateParams {
   aspect_ratio?: '16:9' | '4:3' | '16:10';
   style?: 'professional' | 'creative' | 'minimal' | 'academic';
   content_richness?: 'concise' | 'moderate' | 'detailed';
+  color_scheme?: 'light_blue' | 'dark_slate' | 'warm_cream' | 'dark_navy' | 'soft_green';
 }
 
 /**
@@ -159,12 +160,14 @@ export interface SlideTaskDetail {
   aspect_ratio: string;
   style: string;
   content_richness: string;
+  color_scheme: string;
   created_at: string;
   started_at?: string;
   completed_at?: string;
   queue_position: number;
   output_path?: string;
   pdf_path?: string;
+  ppt_path?: string;
   slide_image_paths?: string[];
   slides_generated?: number;
   error_message?: string;
@@ -182,6 +185,7 @@ export interface SlideTaskListItem {
   createdAt: string;
   slidesGenerated?: number;
   pdfAvailable: boolean;
+  pptxAvailable: boolean;
   slideImageCount: number;
   errorMessage?: string;
   params: {
@@ -189,6 +193,7 @@ export interface SlideTaskListItem {
     aspectRatio: string;
     style: string;
     contentRichness: string;
+    colorScheme: string;
   };
 }
 

@@ -49,6 +49,12 @@ export const SlideParameterPanel = ({
     onParamsChange({ ...params, content_richness: value });
   };
 
+  const handleColorSchemeChange = (
+    value: 'light_blue' | 'dark_slate' | 'warm_cream' | 'dark_navy' | 'soft_green'
+  ) => {
+    onParamsChange({ ...params, color_scheme: value });
+  };
+
   return (
     <div className="bg-card border rounded-lg p-6 space-y-6">
       <div>
@@ -148,6 +154,36 @@ export const SlideParameterPanel = ({
             </SelectItem>
             <SelectItem value="detailed">
               {t('slideContentRichness.detailed')}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* 配色方案 */}
+      <div className="space-y-2">
+        <Label>{t('slide.colorScheme')}</Label>
+        <Select
+          value={params.color_scheme || 'light_blue'}
+          onValueChange={handleColorSchemeChange}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="light_blue">
+              {t('slideColorScheme.light_blue')}
+            </SelectItem>
+            <SelectItem value="dark_slate">
+              {t('slideColorScheme.dark_slate')}
+            </SelectItem>
+            <SelectItem value="warm_cream">
+              {t('slideColorScheme.warm_cream')}
+            </SelectItem>
+            <SelectItem value="dark_navy">
+              {t('slideColorScheme.dark_navy')}
+            </SelectItem>
+            <SelectItem value="soft_green">
+              {t('slideColorScheme.soft_green')}
             </SelectItem>
           </SelectContent>
         </Select>

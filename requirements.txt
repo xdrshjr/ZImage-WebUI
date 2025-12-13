@@ -12,6 +12,9 @@ accelerate>=0.25.0
 # 图像处理
 Pillow>=10.0.0
 
+# PPT生成 (用于slide-gen agent)
+python-pptx>=0.6.21
+
 # 其他工具库
 python-dotenv>=1.0.0
 

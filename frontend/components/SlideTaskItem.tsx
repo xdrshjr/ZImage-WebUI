@@ -41,9 +41,39 @@ export const SlideTaskItem = ({ task }: SlideTaskItemProps) => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       
-      logger.info('PDF下载成功');
+      logger.info('✓ PDF下载成功');
     } catch (error) {
-      logger.error('PDF下载失败', error);
+      logger.error('✗ PDF下载失败', error);
+      alert(t('slideToast.downloadFailed'));
+    } finally {
+      setDownloading(null);
+    }
+  }, [task.taskId, t]);
+
+  /**
+   * 下载PPTX (PowerPoint)
+   */
+  const handleDownloadPptx = useCallback(async () => {
+    setDownloading('pptx');
+    
+    try {
+      logger.info('下载Slide PPTX', { taskId: task.taskId });
+      
+      const blob = await api.getSlidePptxResult(task.taskId);
+      
+      // 创建下载链接
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `presentation_${task.taskId}.pptx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      logger.info('✓ PPTX下载成功');
+    } catch (error) {
+      logger.error('✗ PPTX下载失败', error);
       alert(t('slideToast.downloadFailed'));
     } finally {
       setDownloading(null);
@@ -71,9 +101,9 @@ export const SlideTaskItem = ({ task }: SlideTaskItemProps) => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       
-      logger.info('幻灯片图片下载成功');
+      logger.info('✓ 幻灯片图片下载成功');
     } catch (error) {
-      logger.error('幻灯片图片下载失败', error);
+      logger.error('✗ 幻灯片图片下载失败', error);
       alert(t('slideToast.downloadFailed'));
     } finally {
       setDownloading(null);
@@ -142,6 +172,8 @@ export const SlideTaskItem = ({ task }: SlideTaskItemProps) => {
         <span>{t(`slideStyle.${task.params.style}`)}</span>
         <span>•</span>
         <span>{t(`slideContentRichness.${task.params.contentRichness}`)}</span>
+        <span>•</span>
+        <span>{t(`slideColorScheme.${task.params.colorScheme}`)}</span>
       </div>
 
       {/* 完成状态：显示下载按钮 */}
@@ -169,6 +201,22 @@ export const SlideTaskItem = ({ task }: SlideTaskItemProps) => {
                 {downloading === 'pdf'
                   ? t('button.downloading')
                   : t('slideTaskList.downloadPdf')}
+              </Button>
+            )}
+
+            {/* 下载PPTX */}
+            {task.pptxAvailable && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleDownloadPptx}
+                disabled={downloading === 'pptx'}
+                className="gap-2"
+              >
+                <Download className="h-4 w-4" />
+                {downloading === 'pptx'
+                  ? t('button.downloading')
+                  : t('slideTaskList.downloadPptx')}
               </Button>
             )}
 

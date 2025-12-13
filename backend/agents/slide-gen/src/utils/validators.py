@@ -5,12 +5,79 @@ Input validation utilities
 from typing import Dict, Any, Optional
 
 
+class ColorScheme:
+    """Color scheme definitions with background and text colors"""
+    
+    # Define color schemes: name -> (background_color, text_color, accent_color)
+    SCHEMES = {
+        "light_blue": {
+            "name": "Light Blue",
+            "background": "#f0f7ff",
+            "text": "#1a2332",
+            "accent": "#0071e3",
+            "header": "#4c9eff"
+        },
+        "dark_slate": {
+            "name": "Dark Slate",
+            "background": "#1e293b",
+            "text": "#f1f5f9",
+            "accent": "#38bdf8",
+            "header": "#94a3b8"
+        },
+        "warm_cream": {
+            "name": "Warm Cream",
+            "background": "#fef6e4",
+            "text": "#2d2424",
+            "accent": "#f582ae",
+            "header": "#8d5b4c"
+        },
+        "dark_navy": {
+            "name": "Dark Navy",
+            "background": "#0f172a",
+            "text": "#e2e8f0",
+            "accent": "#60a5fa",
+            "header": "#cbd5e1"
+        },
+        "soft_green": {
+            "name": "Soft Green",
+            "background": "#f0fdf4",
+            "text": "#14532d",
+            "accent": "#22c55e",
+            "header": "#16a34a"
+        }
+    }
+    
+    @staticmethod
+    def get_scheme(scheme_name: str) -> Dict[str, str]:
+        """
+        Get color scheme by name
+        
+        Args:
+            scheme_name: Name of the color scheme
+            
+        Returns:
+            Dictionary with color values
+        """
+        return ColorScheme.SCHEMES.get(scheme_name, ColorScheme.SCHEMES["light_blue"])
+    
+    @staticmethod
+    def get_available_schemes() -> list:
+        """
+        Get list of available color scheme names
+        
+        Returns:
+            List of scheme names
+        """
+        return list(ColorScheme.SCHEMES.keys())
+
+
 class InputValidator:
     """Validates input parameters for slide generation"""
     
     VALID_ASPECT_RATIOS = ["16:9", "4:3", "16:10"]
     VALID_STYLES = ["professional", "creative", "minimal", "academic"]
     VALID_CONTENT_RICHNESS = ["concise", "moderate", "detailed"]
+    VALID_COLOR_SCHEMES = ColorScheme.get_available_schemes()
     
     @staticmethod
     def validate_parameters(params: Dict[str, Any]) -> tuple[bool, Optional[str]]:
@@ -52,6 +119,11 @@ class InputValidator:
         if params["content_richness"] not in InputValidator.VALID_CONTENT_RICHNESS:
             return False, f"content_richness must be one of {InputValidator.VALID_CONTENT_RICHNESS}"
         
+        # Validate color_scheme (optional parameter)
+        if "color_scheme" in params and params["color_scheme"]:
+            if params["color_scheme"] not in InputValidator.VALID_COLOR_SCHEMES:
+                return False, f"color_scheme must be one of {InputValidator.VALID_COLOR_SCHEMES}"
+        
         return True, None
     
     @staticmethod
@@ -86,4 +158,5 @@ class InputValidator:
         if len(text) <= max_length:
             return text
         return text[:max_length - 3] + "..."
+
 

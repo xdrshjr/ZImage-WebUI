@@ -35,6 +35,7 @@ class SlideTask:
     aspect_ratio: str
     style: str
     content_richness: str
+    color_scheme: str
     created_at: str
     started_at: Optional[str] = None
     completed_at: Optional[str] = None
@@ -43,6 +44,7 @@ class SlideTask:
     # 输出结果
     output_path: Optional[str] = None
     pdf_path: Optional[str] = None
+    ppt_path: Optional[str] = None
     slide_image_paths: List[str] = field(default_factory=list)
     slides_generated: int = 0
     
@@ -127,6 +129,7 @@ class SlideTaskQueueManager:
                 logger.info(f"开始处理Slide任务: {task_id}")
                 logger.info(f"  主题: {task.base_text[:80]}...")
                 logger.info(f"  幻灯片数量: {task.num_slides}")
+                logger.info(f"  配色方案: {task.color_scheme}")
                 
                 # 执行生成
                 try:
@@ -135,7 +138,8 @@ class SlideTaskQueueManager:
                         num_slides=task.num_slides,
                         aspect_ratio=task.aspect_ratio,
                         style=task.style,
-                        content_richness=task.content_richness
+                        content_richness=task.content_richness,
+                        color_scheme=task.color_scheme
                     )
                     
                     # 更新任务状态
@@ -146,6 +150,7 @@ class SlideTaskQueueManager:
                             task.status = SlideTaskStatus.COMPLETED
                             task.output_path = result.get('output_path')
                             task.pdf_path = result.get('pdf_path')
+                            task.ppt_path = result.get('ppt_path')
                             task.slides_generated = result.get('slides_generated', 0)
                             task.slide_image_paths = result.get('slide_image_paths', [])
                             task.errors = result.get('errors', [])
@@ -154,6 +159,8 @@ class SlideTaskQueueManager:
                             logger.info(f"  生成了 {task.slides_generated} 张幻灯片")
                             if task.pdf_path:
                                 logger.info(f"  PDF: {Path(task.pdf_path).name}")
+                            if task.ppt_path:
+                                logger.info(f"  PPTX: {Path(task.ppt_path).name}")
                         else:
                             task.status = SlideTaskStatus.FAILED
                             
@@ -207,7 +214,8 @@ class SlideTaskQueueManager:
         num_slides: int,
         aspect_ratio: str,
         style: str,
-        content_richness: str
+        content_richness: str,
+        color_scheme: str = "light_blue"
     ) -> str:
         """
         提交slide生成任务
@@ -218,6 +226,7 @@ class SlideTaskQueueManager:
             aspect_ratio: 幻灯片比例
             style: 视觉风格
             content_richness: 内容详细程度
+            color_scheme: 配色方案
             
         Returns:
             str: 任务ID
@@ -237,6 +246,7 @@ class SlideTaskQueueManager:
             aspect_ratio=aspect_ratio,
             style=style,
             content_richness=content_richness,
+            color_scheme=color_scheme,
             created_at=datetime.now().isoformat()
         )
         
@@ -254,6 +264,7 @@ class SlideTaskQueueManager:
                 logger.info(f"✓ Slide任务已提交: {task_id}")
                 logger.debug(f"  主题: {base_text[:80]}...")
                 logger.debug(f"  幻灯片数量: {num_slides}")
+                logger.debug(f"  配色方案: {color_scheme}")
                 logger.debug(f"  队列位置: {task.queue_position}")
                 
                 return task_id

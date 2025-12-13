@@ -125,7 +125,8 @@ class SlideGenerator:
         num_slides: int,
         aspect_ratio: str,
         style: str,
-        content_richness: str
+        content_richness: str,
+        color_scheme: str = "light_blue"
     ) -> Dict[str, Any]:
         """
         生成幻灯片
@@ -136,12 +137,14 @@ class SlideGenerator:
             aspect_ratio: 幻灯片比例 ("16:9", "4:3", "16:10")
             style: 视觉风格 ("professional", "creative", "minimal", "academic")
             content_richness: 内容详细程度 ("concise", "moderate", "detailed")
+            color_scheme: 配色方案 ("light_blue", "dark_slate", "warm_cream", "dark_navy", "soft_green")
             
         Returns:
             Dict: 生成结果
                 - success: bool - 是否成功
                 - output_path: str - 输出目录路径
                 - pdf_path: str | None - PDF文件路径
+                - ppt_path: str | None - PPT文件路径
                 - slides_generated: int - 生成的幻灯片数量
                 - errors: List[str] - 错误列表
                 - slide_image_paths: List[str] - 单个幻灯片图片路径列表
@@ -153,6 +156,7 @@ class SlideGenerator:
                 'error': 'Slide生成器未就绪',
                 'output_path': None,
                 'pdf_path': None,
+                'ppt_path': None,
                 'slides_generated': 0,
                 'errors': ['Slide生成器未初始化或配置错误'],
                 'slide_image_paths': []
@@ -164,7 +168,8 @@ class SlideGenerator:
             'num_slides': num_slides,
             'aspect_ratio': aspect_ratio,
             'style': style,
-            'content_richness': content_richness
+            'content_richness': content_richness,
+            'color_scheme': color_scheme
         }
         
         valid, error = self.validate_params(params)
@@ -175,6 +180,7 @@ class SlideGenerator:
                 'error': error,
                 'output_path': None,
                 'pdf_path': None,
+                'ppt_path': None,
                 'slides_generated': 0,
                 'errors': [error],
                 'slide_image_paths': []
@@ -189,21 +195,30 @@ class SlideGenerator:
             logger.info(f"比例: {aspect_ratio}")
             logger.info(f"风格: {style}")
             logger.info(f"内容详细度: {content_richness}")
+            logger.info(f"配色方案: {color_scheme}")
             logger.info("="*60)
+            
+            logger.debug("调用SlideGenerationAgent.generate_slides()方法")
             
             result = self.agent.generate_slides(
                 base_text=base_text,
                 num_slides=num_slides,
                 aspect_ratio=aspect_ratio,
                 style=style,
-                content_richness=content_richness
+                content_richness=content_richness,
+                color_scheme=color_scheme
             )
+            
+            logger.debug("Agent执行完成，开始处理结果")
             
             # 收集所有生成的幻灯片图片路径
             slide_image_paths = []
             if result.get('success'):
                 output_path = Path(result['output_path'])
                 slide_images_dir = output_path / 'slide_images'
+                
+                logger.debug(f"检查输出目录: {output_path}")
+                logger.debug(f"幻灯片图片目录: {slide_images_dir}")
                 
                 if slide_images_dir.exists():
                     # 按顺序收集所有幻灯片图片
@@ -212,11 +227,22 @@ class SlideGenerator:
                         if slide_img.exists():
                             slide_image_paths.append(str(slide_img))
                             logger.debug(f"找到幻灯片图片: {slide_img.name}")
+                        else:
+                            logger.warning(f"未找到幻灯片图片: {slide_img.name}")
+                else:
+                    logger.warning(f"幻灯片图片目录不存在: {slide_images_dir}")
                 
                 logger.info(f"✓ 幻灯片生成成功")
                 logger.info(f"✓ 生成了 {len(slide_image_paths)} 张幻灯片图片")
                 if result.get('pdf_path'):
                     logger.info(f"✓ PDF生成成功: {result['pdf_path']}")
+                if result.get('ppt_path'):
+                    logger.info(f"✓ PPTX生成成功: {result['ppt_path']}")
+            else:
+                logger.error("✗ 幻灯片生成失败")
+                if result.get('errors'):
+                    for error in result['errors']:
+                        logger.error(f"  - {error}")
             
             # 添加幻灯片图片路径到结果
             result['slide_image_paths'] = slide_image_paths
@@ -233,6 +259,7 @@ class SlideGenerator:
                 'error': error_msg,
                 'output_path': None,
                 'pdf_path': None,
+                'ppt_path': None,
                 'slides_generated': 0,
                 'errors': [error_msg],
                 'slide_image_paths': []

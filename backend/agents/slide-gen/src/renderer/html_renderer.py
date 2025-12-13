@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Dict, Any
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from src.utils.config import config
-from src.utils.validators import InputValidator
+from src.utils.validators import InputValidator, ColorScheme
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,8 @@ class HTMLRenderer:
         self,
         slide_data: Dict[str, Any],
         style: str,
-        aspect_ratio: str
+        aspect_ratio: str,
+        color_scheme: str = "light_blue"
     ) -> Path:
         """
         Render slide to HTML file
@@ -44,6 +45,7 @@ class HTMLRenderer:
             slide_data: Slide data dictionary
             style: Visual style
             aspect_ratio: Aspect ratio
+            color_scheme: Color scheme name
             
         Returns:
             Path to generated HTML file
@@ -53,7 +55,11 @@ class HTMLRenderer:
         layout = slide_data['layout']
         
         logger.debug(f"Rendering slide {slide_number} with '{template_type}' template")
-        logger.debug(f"Style: {style}, Aspect Ratio: {aspect_ratio}")
+        logger.debug(f"Style: {style}, Aspect Ratio: {aspect_ratio}, Color Scheme: {color_scheme}")
+        
+        # Get color scheme
+        colors = ColorScheme.get_scheme(color_scheme)
+        logger.debug(f"Applying color scheme: background={colors['background']}, text={colors['text']}")
         
         # Get dimensions
         dims = self.dimensions[aspect_ratio]
@@ -96,14 +102,15 @@ class HTMLRenderer:
             template = self.env.get_template("title_and_content.html")
         
         # Render template
-        logger.debug("Rendering template with data")
+        logger.debug("Rendering template with data and color scheme")
         html_content = template.render(
             slide_number=slide_number,
             title=title,
             content_blocks=content_blocks,
             style=style,
             width=dims['width'],
-            height=dims['height']
+            height=dims['height'],
+            colors=colors
         )
         
         # Save to file
@@ -111,6 +118,7 @@ class HTMLRenderer:
         output_path.write_text(html_content, encoding='utf-8')
         
         logger.debug(f"HTML file saved to {output_path} ({len(html_content)} bytes)")
+        logger.info(f"✓ Slide {slide_number} rendered with {color_scheme} color scheme")
         return output_path
     
     def _validate_and_truncate(

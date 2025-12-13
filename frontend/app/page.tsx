@@ -51,6 +51,7 @@ function HomeContent() {
     aspect_ratio: '16:9',
     style: 'professional',
     content_richness: 'moderate',
+    color_scheme: 'light_blue',
   });
   
   const { 
@@ -145,6 +146,7 @@ function HomeContent() {
         createdAt: task.created_at,
         slidesGenerated: task.slides_generated,
         pdfAvailable: !!task.pdf_path,
+        pptxAvailable: !!task.ppt_path,
         slideImageCount: task.slide_image_paths?.length || 0,
         errorMessage: task.error_message,
         params: {
@@ -152,6 +154,7 @@ function HomeContent() {
           aspectRatio: task.aspect_ratio,
           style: task.style,
           contentRichness: task.content_richness,
+          colorScheme: task.color_scheme,
         },
       };
     });

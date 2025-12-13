@@ -219,6 +219,24 @@ export const api = {
   },
 
   /**
+   * 获取Slide PPTX结果 (PowerPoint)
+   */
+  async getSlidePptxResult(taskId: string): Promise<Blob> {
+    const response = await apiClient.get(`/api/slide/result/${taskId}/pptx`, {
+      responseType: 'blob',
+    });
+    
+    // 检查是否是JSON错误响应
+    if (response.headers['content-type']?.includes('application/json')) {
+      const text = await response.data.text();
+      const json = JSON.parse(text);
+      throw new Error(json.message || '获取PPTX失败');
+    }
+    
+    return response.data;
+  },
+
+  /**
    * 获取Slide单张图片
    */
   async getSlideImage(taskId: string, slideNumber: number): Promise<Blob> {

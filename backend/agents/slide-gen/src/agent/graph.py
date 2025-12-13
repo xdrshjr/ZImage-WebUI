@@ -161,14 +161,17 @@ class SlideGenerationAgent:
             
             if state['slides']:
                 ppt_path = config.output_dir / "final_presentation.pptx"
+                color_scheme = state.get('color_scheme', 'light_blue')
                 
                 logger.debug(f"Preparing {len(state['slides'])} slides for PPT export")
+                logger.debug(f"Using color scheme: {color_scheme}")
                 
                 # Export slides to PPT
                 success = self.ppt_exporter.export_to_ppt(
                     slides_data=state['slides'],
                     output_path=ppt_path,
-                    aspect_ratio=state['aspect_ratio']
+                    aspect_ratio=state['aspect_ratio'],
+                    color_scheme=color_scheme
                 )
                 
                 if success:

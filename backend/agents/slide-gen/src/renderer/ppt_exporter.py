@@ -10,6 +10,7 @@ from typing import List, Dict, Any, Optional
 from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
+from pptx.enum.shapes import MSO_SHAPE
 from pptx.dml.color import RGBColor
 
 logger = logging.getLogger(__name__)
@@ -36,11 +37,37 @@ class PPTExporter:
             'accent': RGBColor(0, 113, 227)  # #0071e3 - Apple blue
         }
     
+    def _apply_color_scheme(self, scheme_colors: Dict[str, str]):
+        """
+        Apply color scheme by converting hex colors to RGBColor objects
+        
+        Args:
+            scheme_colors: Dictionary with hex color values
+        """
+        def hex_to_rgb(hex_color: str) -> RGBColor:
+            """Convert hex color string to RGBColor"""
+            hex_color = hex_color.lstrip('#')
+            r = int(hex_color[0:2], 16)
+            g = int(hex_color[2:4], 16)
+            b = int(hex_color[4:6], 16)
+            return RGBColor(r, g, b)
+        
+        # Update color mappings
+        self.colors['background'] = hex_to_rgb(scheme_colors['background'])
+        self.colors['text'] = hex_to_rgb(scheme_colors['text'])
+        self.colors['title'] = hex_to_rgb(scheme_colors['text'])  # Title uses text color
+        self.colors['accent'] = hex_to_rgb(scheme_colors['accent'])
+        self.colors['section_header'] = hex_to_rgb(scheme_colors['header'])
+        
+        logger.debug(f"Color scheme applied: background={self.colors['background']}, "
+                    f"text={self.colors['text']}, accent={self.colors['accent']}")
+    
     def export_to_ppt(
         self,
         slides_data: List[Dict[str, Any]],
         output_path: Path,
-        aspect_ratio: str = "16:9"
+        aspect_ratio: str = "16:9",
+        color_scheme: str = "light_blue"
     ) -> bool:
         """
         Export slides data to PowerPoint presentation
@@ -49,6 +76,7 @@ class PPTExporter:
             slides_data: List of slide data dictionaries containing layout info
             output_path: Path for output PPTX file
             aspect_ratio: Aspect ratio for slide dimensions
+            color_scheme: Color scheme name (e.g., "light_blue", "dark_slate")
             
         Returns:
             Success status
@@ -62,8 +90,21 @@ class PPTExporter:
         logger.info("=" * 60)
         logger.info(f"Total slides to export: {len(slides_data)}")
         logger.info(f"Aspect ratio: {aspect_ratio}")
+        logger.info(f"Color scheme: {color_scheme}")
         logger.info(f"Output path: {output_path}")
         logger.debug(f"Output directory: {output_path.parent}")
+        
+        # Get color scheme colors from validators
+        from src.utils.validators import ColorScheme
+        scheme_colors = ColorScheme.get_scheme(color_scheme)
+        logger.debug(f"Color scheme values: {scheme_colors}")
+        
+        # Convert hex colors to RGBColor objects
+        self._apply_color_scheme(scheme_colors)
+        logger.info(f"Applied {scheme_colors['name']} color scheme")
+        logger.debug(f"  Background: {scheme_colors['background']}")
+        logger.debug(f"  Text: {scheme_colors['text']}")
+        logger.debug(f"  Accent: {scheme_colors['accent']}")
         
         try:
             # Create presentation
@@ -155,6 +196,15 @@ class PPTExporter:
             layout = slide_data.get('layout', {})
             
             logger.debug(f"  Creating slide with template: {template_type}")
+            logger.debug(f"  Slide dimensions: {slide_width} x {slide_height}")
+            
+            # Add slide background (matching HTML template background color)
+            logger.debug(f"  Adding slide background with color: {self.colors['background']}")
+            background = slide.background
+            fill = background.fill
+            fill.solid()
+            fill.fore_color.rgb = self.colors['background']
+            logger.debug(f"  ✓ Background color applied")
             
             # Extract layout data
             title = layout.get('title', '')
@@ -162,6 +212,31 @@ class PPTExporter:
             
             logger.debug(f"  Title: {title[:50]}..." if len(title) > 50 else f"  Title: {title}")
             logger.debug(f"  Content blocks: {len(content_blocks)}")
+            
+            # Add vertical bar decoration (matching HTML ::before pseudo-element)
+            bar_left = Inches(0.5)
+            bar_top = Inches(0.47)  # Optically aligned with title text
+            bar_width = Pt(8)
+            bar_height = Pt(33)  # Approximately 0.75em relative to 44pt font
+            
+            logger.debug(f"  Adding decorative vertical bar at left: {bar_left}, top: {bar_top}")
+            bar_shape = slide.shapes.add_shape(
+                MSO_SHAPE.ROUNDED_RECTANGLE,
+                bar_left,
+                bar_top,
+                bar_width,
+                bar_height
+            )
+            # Style the bar with accent color and rounded corners
+            bar_fill = bar_shape.fill
+            bar_fill.solid()
+            bar_fill.fore_color.rgb = self.colors['accent']
+            
+            # Remove bar outline for clean appearance
+            bar_line = bar_shape.line
+            bar_line.fill.background()
+            
+            logger.debug(f"  ✓ Vertical bar added with accent color: {self.colors['accent']}")
             
             # Add title with Apple-style design
             title_left = Inches(0.5)
@@ -183,7 +258,7 @@ class PPTExporter:
             title_para.font.color.rgb = self.colors['title']
             title_para.alignment = PP_ALIGN.LEFT
             
-            logger.debug(f"  ✓ Title added")
+            logger.debug(f"  ✓ Title added with {len(title)} characters")
             
             # Process content based on template type
             if template_type == 'title_and_content':

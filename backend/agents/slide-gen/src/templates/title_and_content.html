@@ -19,11 +19,11 @@
         {% for block in content_blocks %}
             {% if block.type == 'text' %}
                 <!-- Text blocks align left naturally in the column. Added padding-left to align with title visual weight -->
-                <div style="text-align: left; width: 100%; max-width: 900px; margin-top: 0; margin-bottom: 30px;">
+                <div style="text-align: left; width: 100%; max-width: 900px; margin-top: 0; margin-bottom: 30px; overflow: hidden;">
                     {% if block.section_title %}
                         <div class="section-header" style="text-align: left;">{{ block.section_title }}</div>
                     {% endif %}
-                    <div class="text-content" style="text-align: left;">
+                    <div class="text-content text-overflow-safe" style="text-align: left; -webkit-line-clamp: 10; max-height: calc(32px * 1.4 * 10);">
                         {{ block.content }}
                     </div>
                 </div>

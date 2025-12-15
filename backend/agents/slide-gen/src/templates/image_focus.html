@@ -7,11 +7,11 @@
     <div class="content-area">
         {% for block in content_blocks %}
             {% if block.type == 'text' %}
-                <div class="text-block" style="left: {{ block.position.x }}px; top: {{ block.position.y }}px; width: {{ block.position.width }}px; height: {{ block.position.height }}px;">
+                <div class="text-block" style="left: {{ block.position.x }}px; top: {{ block.position.y }}px; width: {{ block.position.width }}px; height: {{ block.position.height }}px; max-height: {{ block.position.height }}px;">
                     {% if block.section_title %}
                         <div class="section-header">{{ block.section_title }}</div>
                     {% endif %}
-                    <div class="text-content">{{ block.content }}</div>
+                    <div class="text-content" style="max-height: calc({{ block.position.height }}px - {% if block.section_title %}60px{% else %}0px{% endif %}); overflow: hidden; word-wrap: break-word;">{{ block.content }}</div>
                 </div>
             {% elif block.type == 'image_placeholder' and block.image_path %}
                 {% set img_x = [block.position.x, 60]|max %}

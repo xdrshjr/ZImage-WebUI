@@ -177,6 +177,20 @@ IMAGE POSITIONING REQUIREMENTS (CRITICAL - STRICTLY ENFORCED):
 - Always ensure: position.y + position.height ≤ {dims['height']} - 80
 - Leave proper spacing between text blocks and images (minimum 50px gap)
 
+IMAGE ASPECT RATIO GUIDANCE (IMPORTANT FOR QUALITY):
+- Use standard aspect ratios to prevent distortion and ensure professional appearance
+- Recommended aspect ratios for different placements:
+  * Landscape images: 16:9 (e.g., 800x450, 960x540, 1440x810) or 4:3 (e.g., 800x600, 960x720)
+  * Portrait images: 3:4 (e.g., 450x600, 540x720) or 2:3 (e.g., 400x600, 480x720)
+  * Square images: 1:1 (e.g., 600x600, 720x720, 800x800)
+  * Wide images: 21:9 (e.g., 840x360) for panoramic views
+- For "title_and_content": Use landscape (16:9 or 4:3) or portrait (3:4) images
+- For "two_column": Use portrait (3:4, 2:3) or square (1:1) images within columns
+- For "image_focus": Use landscape (16:9) images for maximum visual impact
+- Avoid extreme aspect ratios (narrower than 1:3 or wider than 3:1) to prevent distortion
+- Example good dimensions: 960x540 (16:9), 800x600 (4:3), 720x720 (1:1), 480x720 (2:3)
+- Images will be scaled to fit within containers while preserving aspect ratio (no cropping)
+
 Example for "title_and_content" with MULTIPLE text blocks:
 {{
   "slide_number": {slide_number},
@@ -340,6 +354,12 @@ IMAGE POSITIONING (CRITICAL - MUST FOLLOW):
 - Example GOOD: x=1180, width=660 → right edge=1840 (exactly at limit)
 - Leave proper spacing between text blocks and images (minimum 50px gap)
 - Templates will enforce margins automatically, but provide safe positions
+
+IMAGE ASPECT RATIO (IMPORTANT):
+- Use standard aspect ratios for best results: 16:9, 4:3, 1:1, 3:4, 2:3
+- Recommended dimensions: 960x540 (16:9), 800x600 (4:3), 720x720 (1:1), 480x720 (2:3)
+- Avoid extreme ratios (narrower than 1:3 or wider than 3:1)
+- Images will be scaled with aspect ratio preserved (no cropping/distortion)
 
 REMEMBER: 
 - Rich content = multiple organized text blocks, NOT long text

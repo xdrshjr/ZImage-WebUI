@@ -351,7 +351,11 @@ class ImageGenerator:
     
     def _resize_image(self, image: Image.Image, target_width: int, target_height: int) -> Image.Image:
         """
-        Resize image to target dimensions using smart cropping (fit)
+        Resize image to target dimensions while preserving aspect ratio (contain strategy)
+        
+        This method scales the image to fit within target dimensions without cropping,
+        then adds padding to match exact target size. This prevents distortion and
+        ensures important content is not cropped out.
         
         Args:
             image: PIL Image object
@@ -359,7 +363,7 @@ class ImageGenerator:
             target_height: Target height
             
         Returns:
-            Resized and cropped image
+            Resized image with padding to match target dimensions
         """
         current_size = image.size
         target_size = (target_width, target_height)
@@ -368,17 +372,48 @@ class ImageGenerator:
             logger.debug(f"Image already at target size: {target_size}")
             return image
         
-        logger.debug(f"Smart resizing image: {current_size} → {target_size}")
-        # ImageOps.fit crops and resizes the image to fill the requested size 
-        # while maintaining aspect ratio, centering the crop.
-        resized = ImageOps.fit(
-            image, 
-            target_size, 
-            method=Image.Resampling.LANCZOS, 
-            centering=(0.5, 0.5)
-        )
-        logger.debug("Image resized and cropped successfully")
-        return resized
+        logger.debug(f"Aspect-ratio-preserving resize: {current_size} → {target_size}")
+        
+        # Calculate aspect ratios
+        img_aspect = image.width / image.height
+        target_aspect = target_width / target_height
+        
+        logger.debug(f"  Original aspect ratio: {img_aspect:.3f} ({image.width}:{image.height})")
+        logger.debug(f"  Target aspect ratio: {target_aspect:.3f} ({target_width}:{target_height})")
+        
+        # Calculate new dimensions to fit within target while preserving aspect ratio
+        if img_aspect > target_aspect:
+            # Image is wider - fit to width
+            new_width = target_width
+            new_height = int(target_width / img_aspect)
+            logger.debug(f"  Image is wider - fitting to width")
+        else:
+            # Image is taller - fit to height
+            new_height = target_height
+            new_width = int(target_height * img_aspect)
+            logger.debug(f"  Image is taller - fitting to height")
+        
+        logger.debug(f"  Scaled dimensions: {new_width}x{new_height}")
+        
+        # Resize with high quality
+        resized = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+        logger.debug(f"  Image resized to {resized.size} using LANCZOS resampling")
+        
+        # Create canvas with target size and neutral background
+        canvas = Image.new('RGB', (target_width, target_height), color='#F5F5F5')
+        
+        # Calculate centering offsets
+        offset_x = (target_width - new_width) // 2
+        offset_y = (target_height - new_height) // 2
+        
+        logger.debug(f"  Padding offsets: x={offset_x}px, y={offset_y}px")
+        
+        # Paste resized image onto canvas (centered)
+        canvas.paste(resized, (offset_x, offset_y))
+        
+        logger.info(f"✓ Image resized with aspect ratio preserved: {current_size} → {target_size} (actual: {new_width}x{new_height} + padding)")
+        
+        return canvas
     
     def _create_placeholder_image(
         self, 

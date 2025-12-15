@@ -49,7 +49,7 @@ def main():
     # Hardcoded test parameters
     params = {
         "base_text": "Introduction to Artificial Intelligence and its applications in modern technology",
-        "num_slides": 2,
+        "num_slides": 4,
         "aspect_ratio": "16:9",
         "style": "professional",
         "content_richness": "moderate"

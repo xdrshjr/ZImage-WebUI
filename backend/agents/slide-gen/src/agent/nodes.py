@@ -258,10 +258,35 @@ class SlideGenerationNodes:
                 x_pos = position.get('x', 0)
                 y_pos = position.get('y', 0)
                 
+                # Validate aspect ratio
+                aspect_ratio = width / height if height > 0 else 1.0
                 logger.debug(f"  Image {block_idx + 1} details:")
                 logger.debug(f"    - Position: ({x_pos}, {y_pos})")
                 logger.debug(f"    - Dimensions: {width}x{height}")
+                logger.debug(f"    - Aspect ratio: {aspect_ratio:.3f} ({width}:{height})")
                 logger.debug(f"    - Raw prompt length: {len(raw_prompt)} chars")
+                
+                # Check for extreme aspect ratios that could cause distortion
+                if aspect_ratio < 0.33:  # Narrower than 1:3
+                    logger.warning(f"    ⚠ Image has very narrow aspect ratio ({aspect_ratio:.3f})")
+                    logger.warning(f"      This may cause distortion. Recommended: use ratios between 1:3 and 3:1")
+                elif aspect_ratio > 3.0:  # Wider than 3:1
+                    logger.warning(f"    ⚠ Image has very wide aspect ratio ({aspect_ratio:.3f})")
+                    logger.warning(f"      This may cause distortion. Recommended: use ratios between 1:3 and 3:1")
+                else:
+                    # Log standard aspect ratio if it matches common ones
+                    standard_ratios = {
+                        16/9: "16:9 landscape",
+                        4/3: "4:3 landscape",
+                        1.0: "1:1 square",
+                        3/4: "3:4 portrait",
+                        2/3: "2:3 portrait",
+                        21/9: "21:9 ultrawide"
+                    }
+                    for std_ratio, name in standard_ratios.items():
+                        if abs(aspect_ratio - std_ratio) < 0.05:  # Within 5% tolerance
+                            logger.debug(f"    ✓ Standard aspect ratio detected: {name}")
+                            break
                 
                 # Refine prompt
                 logger.info(f"  Image {block_idx + 1}: Refining prompt for professional quality...")

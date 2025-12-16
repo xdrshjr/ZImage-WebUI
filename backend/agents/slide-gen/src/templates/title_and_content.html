@@ -13,22 +13,42 @@
                 <div class="image-container" style="position: relative; width: 80%; height: 45vh; margin: 20px auto 40px auto;">
                     <img src="{{ block.image_path }}" alt="Slide image">
                 </div>
+                <!-- Add separator after image -->
+                <div class="content-divider"></div>
             {% endif %}
         {% endfor %}
         
+        {% set text_block_count = namespace(value=0) %}
         {% for block in content_blocks %}
             {% if block.type == 'text' %}
                 <!-- Text blocks align left naturally in the column. Added padding-left to align with title visual weight -->
                 <div style="text-align: left; width: 100%; max-width: 900px; margin-top: 0; margin-bottom: 30px; overflow: hidden;">
                     {% if block.section_title %}
-                        <div class="section-header" style="text-align: left;">{{ block.section_title }}</div>
+                        <!-- Add section separator before section header -->
+                        {% if text_block_count.value > 0 %}
+                            <div class="section-separator"></div>
+                        {% endif %}
+                        {% if block.icon %}
+                            <div class="section-header-with-icon">
+                                <svg class="section-icon">
+                                    <use href="#{{ block.icon }}"/>
+                                </svg>
+                                <div class="section-header" style="text-align: left;">{{ block.section_title }}</div>
+                            </div>
+                        {% else %}
+                            <div class="section-header" style="text-align: left;">{{ block.section_title }}</div>
+                        {% endif %}
                     {% endif %}
-                    <div class="text-content text-overflow-safe" style="text-align: left; -webkit-line-clamp: 10; max-height: calc(32px * 1.4 * 10);">
+                    <div class="text-content text-overflow-safe" style="text-align: left; -webkit-line-clamp: 10; max-height: calc(var(--content-size) * 1.4 * 10);">
                         {{ block.content }}
                     </div>
                 </div>
+                {% set text_block_count.value = text_block_count.value + 1 %}
             {% endif %}
         {% endfor %}
     </div>
+    
+    <!-- Footer accent line -->
+    <div class="footer-accent"></div>
 </div>
 {% endblock %}

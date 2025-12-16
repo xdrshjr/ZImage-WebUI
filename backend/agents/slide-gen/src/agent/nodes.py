@@ -12,6 +12,7 @@ from src.image.refiner import ImagePromptRefiner
 from src.renderer.html_renderer import HTMLRenderer
 from src.utils.validators import InputValidator
 from src.utils.template_validator import TemplateValidator
+from src.utils.icon_selector import IconSelector
 from src.utils.config import config
 
 logger = logging.getLogger(__name__)
@@ -179,28 +180,45 @@ class SlideGenerationNodes:
             if validated_template != llm_selected_template:
                 logger.info(f"  Template adjusted by validator: '{llm_selected_template}' → '{validated_template}'")
             
+            # Get content blocks from response
+            content_blocks = response.get('layout', {}).get('content_blocks', [])
+            
+            # Apply icon selection to content blocks
+            logger.debug(f"Applying icon selection to {len(content_blocks)} content blocks")
+            content_blocks_with_icons = IconSelector.select_icons_for_content_blocks(content_blocks)
+            
+            # Count how many icons were added
+            icons_added = sum(1 for block in content_blocks_with_icons if block.get('icon'))
+            if icons_added > 0:
+                logger.info(f"  Icons added: {icons_added} section headers enhanced with visual icons")
+            
+            # Update response with icon-enhanced content blocks
+            layout_data = response.get('layout', {})
+            layout_data['content_blocks'] = content_blocks_with_icons
+            
             slide_data = {
                 'slide_number': slide_number,
                 'template_type': validated_template,
-                'layout': response.get('layout', {}),
+                'layout': layout_data,
                 'html_path': None,
                 'image_path': None
             }
             
-            content_blocks = slide_data['layout'].get('content_blocks', [])
             logger.info(f"✓ Layout generated successfully")
             logger.info(f"  Final template: '{validated_template}'")
-            logger.info(f"  Content blocks: {len(content_blocks)}")
+            logger.info(f"  Content blocks: {len(content_blocks_with_icons)}")
             
             # Log content block details at debug level
             if logger.isEnabledFor(logging.DEBUG):
-                for i, block in enumerate(content_blocks, 1):
+                for i, block in enumerate(content_blocks_with_icons, 1):
                     block_type = block.get('type', 'unknown')
                     position = block.get('position', {})
                     logger.debug(f"  Block {i}: type={block_type}, pos=({position.get('x', 0)}, {position.get('y', 0)}), size=({position.get('width', 0)}x{position.get('height', 0)})")
                     if block_type == 'text':
                         content_preview = block.get('content', '')[:60] + "..." if len(block.get('content', '')) > 60 else block.get('content', '')
                         logger.debug(f"    Content preview: {content_preview}")
+                        if block.get('icon'):
+                            logger.debug(f"    Icon: {block.get('icon')} for section '{block.get('section_title', 'N/A')}'")
                     elif block_type == 'image_placeholder':
                         prompt_preview = block.get('image_prompt', '')[:60] + "..." if len(block.get('image_prompt', '')) > 60 else block.get('image_prompt', '')
                         logger.debug(f"    Image prompt preview: {prompt_preview}")

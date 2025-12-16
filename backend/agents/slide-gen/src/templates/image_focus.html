@@ -5,13 +5,35 @@
     <h1 class="slide-title">{{ title }}</h1>
     
     <div class="content-area">
+        {% set text_blocks = [] %}
         {% for block in content_blocks %}
+            {% if block.type == 'text' %}
+                {% set _ = text_blocks.append(block) %}
+            {% endif %}
+        {% endfor %}
+        
+        {% for idx, block in enumerate(content_blocks) %}
             {% if block.type == 'text' %}
                 <div class="text-block" style="left: {{ block.position.x }}px; top: {{ block.position.y }}px; width: {{ block.position.width }}px; height: {{ block.position.height }}px; max-height: {{ block.position.height }}px;">
                     {% if block.section_title %}
-                        <div class="section-header">{{ block.section_title }}</div>
+                        <!-- Add section separator before section header (except first text block) -->
+                        {% if idx > 0 and text_blocks|length > 1 and block == text_blocks[1:][0] if text_blocks|length > 1 else false %}
+                            <div class="section-separator" style="margin-top: 0;"></div>
+                        {% endif %}
+                        {% if block.icon %}
+                            <div class="section-header-with-icon">
+                                <svg class="section-icon">
+                                    <use href="#{{ block.icon }}"/>
+                                </svg>
+                                <div class="section-header">{{ block.section_title }}</div>
+                            </div>
+                        {% else %}
+                            <div class="section-header">{{ block.section_title }}</div>
+                        {% endif %}
                     {% endif %}
-                    <div class="text-content" style="max-height: calc({{ block.position.height }}px - {% if block.section_title %}60px{% else %}0px{% endif %}); overflow: hidden; word-wrap: break-word;">{{ block.content }}</div>
+                    {# Calculate header height dynamically based on CSS variable - add icon height if present #}
+                    {% set header_height = 'var(--header-size) * 1.2 + 16px' if block.section_title else '0px' %}
+                    <div class="text-content text-overflow-safe" style="max-height: calc({{ block.position.height }}px - ({% if block.section_title %}{{ header_height }}{% else %}0px{% endif %})); -webkit-line-clamp: 8; overflow: hidden; word-wrap: break-word;">{{ block.content }}</div>
                 </div>
             {% elif block.type == 'image_placeholder' and block.image_path %}
                 {% set img_x = [block.position.x, 60]|max %}
@@ -26,5 +48,8 @@
             {% endif %}
         {% endfor %}
     </div>
+    
+    <!-- Footer accent line -->
+    <div class="footer-accent"></div>
 </div>
 {% endblock %}

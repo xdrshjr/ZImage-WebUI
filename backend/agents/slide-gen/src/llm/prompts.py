@@ -299,6 +299,13 @@ CONTENT QUALITY REQUIREMENTS:
 - Captions: substantive with bullet structure ({limits['caption']} chars max)
 - Create multiple text blocks per slide for rich, organized content
 
+VISUAL ENHANCEMENT - ICON SYSTEM:
+- Section headers will automatically be enhanced with contextual icons
+- Icons are selected based on section title keywords (e.g., "Key Results" → chart icon)
+- No need to specify icons - the system intelligently assigns appropriate icons
+- This adds visual interest and helps users quickly identify section types
+- Focus on writing clear, descriptive section titles for best icon matching
+
 POSITIONING RULES:
 - All positions must fit within {dims['width']}x{dims['height']}
 - Text blocks: position multiple blocks across the slide (left, center, right areas)

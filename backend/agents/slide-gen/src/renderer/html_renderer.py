@@ -8,6 +8,7 @@ from typing import Dict, Any
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from src.utils.config import config
 from src.utils.validators import InputValidator, ColorScheme
+from src.utils.text_metrics import TextMetrics
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +66,9 @@ class HTMLRenderer:
         dims = self.dimensions[aspect_ratio]
         logger.debug(f"Slide dimensions: {dims['width']}x{dims['height']}")
         
+        # Calculate available height for content (subtract padding and title area)
+        available_height = dims['height'] - 200  # Approximate height after padding and title
+        
         # Validate and truncate text content
         title = layout.get('title', '')
         title = self._validate_and_truncate(title, 80, 'title', slide_number)
@@ -92,6 +96,23 @@ class HTMLRenderer:
                 position = block.get('position', {})
                 logger.debug(f"Block {i+1}: Image placeholder at ({position.get('x', 0)}, {position.get('y', 0)})")
         
+        # Calculate content density and font scaling
+        logger.debug("Analyzing content density for font scaling")
+        content_density = TextMetrics.calculate_content_density(title, content_blocks)
+        scale_factor = TextMetrics.calculate_scale_factor(
+            content_density,
+            available_height,
+            template_type
+        )
+        
+        # Log scaling analysis
+        TextMetrics.log_scaling_analysis(
+            slide_number,
+            content_density,
+            scale_factor,
+            template_type
+        )
+        
         # Load template
         template_file = f"{template_type}.html"
         try:
@@ -102,7 +123,7 @@ class HTMLRenderer:
             template = self.env.get_template("title_and_content.html")
         
         # Render template
-        logger.debug("Rendering template with data and color scheme")
+        logger.debug(f"Rendering template with data, color scheme, and font scale ({scale_factor:.2f})")
         html_content = template.render(
             slide_number=slide_number,
             title=title,
@@ -110,7 +131,8 @@ class HTMLRenderer:
             style=style,
             width=dims['width'],
             height=dims['height'],
-            colors=colors
+            colors=colors,
+            font_scale=scale_factor
         )
         
         # Save to file

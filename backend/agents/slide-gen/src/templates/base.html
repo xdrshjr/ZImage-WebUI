@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Slide {{ slide_number }}</title>
     <style>
+        :root {
+            /* Dynamic font scaling variables */
+            --font-scale: {{ font_scale|default(1.0) }};
+            --title-size: calc(56px * var(--font-scale));
+            --header-size: calc(28px * var(--font-scale));
+            --content-size: calc(32px * var(--font-scale));
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -43,7 +51,7 @@
         
         /* Typography */
         h1.slide-title {
-            font-size: 56px;
+            font-size: var(--title-size);
             font-weight: 700;
             letter-spacing: -0.015em;
             margin-bottom: 40px;
@@ -60,7 +68,7 @@
             display: -webkit-box;
             -webkit-box-orient: vertical;
             -webkit-line-clamp: 2; /* Max 2 lines for title */
-            max-height: calc(56px * 1.1 * 2); /* font-size * line-height * max-lines */
+            max-height: calc(var(--title-size) * 1.1 * 2); /* font-size * line-height * max-lines */
         }
         
         h1.slide-title::before {
@@ -82,7 +90,7 @@
         }
         
         .text-content {
-            font-size: 32px;
+            font-size: var(--content-size);
             line-height: 1.4;
             font-weight: 400;
             color: {{ colors.text }};
@@ -105,7 +113,7 @@
         
         /* Section Headers */
         .section-header {
-            font-size: 28px;
+            font-size: var(--header-size);
             font-weight: 600;
             margin-bottom: 16px;
             color: {{ colors.header }};
@@ -119,7 +127,7 @@
             display: -webkit-box;
             -webkit-box-orient: vertical;
             -webkit-line-clamp: 2; /* Max 2 lines for section headers */
-            max-height: calc(28px * 1.2 * 2); /* font-size * line-height * max-lines */
+            max-height: calc(var(--header-size) * 1.2 * 2); /* font-size * line-height * max-lines */
         }
         
         /* Lists */
@@ -192,9 +200,129 @@
             text-align: center;
         }
         
+        /* Icon System Styles */
+        .section-header-with-icon {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .section-icon {
+            flex-shrink: 0;
+            width: calc(var(--header-size) * 0.9);
+            height: calc(var(--header-size) * 0.9);
+            color: {{ colors.accent }};
+            opacity: 0.9;
+        }
+        
+        .section-header-with-icon .section-header {
+            margin-bottom: 0; /* Remove bottom margin when inside icon wrapper */
+            flex: 1;
+        }
+        
+        /* Bullet point icon styling - for future use */
+        .text-content-with-icons li {
+            list-style: none;
+            position: relative;
+            padding-left: 1.5em;
+        }
+        
+        .text-content-with-icons li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.35em;
+            width: 0.5em;
+            height: 0.5em;
+            background-color: {{ colors.accent }};
+            border-radius: 50%;
+            opacity: 0.8;
+        }
+        
+        /* Visual Separators - Task 5 Enhancement */
+        .section-separator {
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, {{ colors.accent }} 0%, transparent 100%);
+            margin: 20px 0;
+            border-radius: 2px;
+            opacity: 0.8;
+        }
+        
+        .section-separator.full-width {
+            width: 100%;
+            height: 2px;
+            opacity: 0.3;
+        }
+        
+        /* Content block dividers */
+        .content-divider {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                {{ colors.accent }}40 20%, 
+                {{ colors.accent }}40 80%, 
+                transparent 100%);
+            margin: 30px 0;
+        }
+        
+        /* Enhanced title bar with subtle effects */
+        h1.slide-title::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 8px;
+            height: 0.75em;
+            background: linear-gradient(180deg, {{ colors.accent }}20 0%, transparent 100%);
+            border-radius: 4px;
+            filter: blur(4px);
+            z-index: -1;
+        }
+        
+        /* Footer accent line */
+        .footer-accent {
+            position: absolute;
+            bottom: 40px;
+            left: 80px;
+            right: 80px;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                {{ colors.accent }} 0%, 
+                {{ colors.accent }}60 50%, 
+                transparent 100%);
+            border-radius: 1px;
+            opacity: 0.6;
+        }
+        
+        .footer-accent::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: -1px;
+            width: 40px;
+            height: 4px;
+            background: {{ colors.accent }};
+            border-radius: 2px;
+        }
+        
+        /* Slide number styling (optional, for footer) */
+        .slide-number {
+            position: absolute;
+            bottom: 20px;
+            right: 80px;
+            font-size: calc(var(--content-size) * 0.5);
+            color: {{ colors.text }};
+            opacity: 0.4;
+            font-weight: 500;
+        }
+        
     </style>
 </head>
 <body>
+    {% include "icons.html" %}
     {% block content %}
     {% endblock %}
 </body>

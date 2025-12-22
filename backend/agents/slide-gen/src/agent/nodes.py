@@ -174,7 +174,8 @@ class SlideGenerationNodes:
                 slide_number=slide_number,
                 total_slides=state['num_slides'],
                 previous_templates=previous_templates,
-                slide_title=slide_outline['title']
+                slide_title=slide_outline['title'],
+                aspect_ratio=state.get('aspect_ratio')
             )
             
             if validated_template != llm_selected_template:
@@ -207,6 +208,11 @@ class SlideGenerationNodes:
             logger.info(f"✓ Layout generated successfully")
             logger.info(f"  Final template: '{validated_template}'")
             logger.info(f"  Content blocks: {len(content_blocks_with_icons)}")
+            
+            # Log xiaohongshu template usage
+            if validated_template in ['xiaohongshu_minimal', 'xiaohongshu_fashion', 'xiaohongshu_mixed', 'xiaohongshu_bold']:
+                logger.info(f"  Using Xiaohongshu template '{validated_template}' - optimized for 3:4 portrait format")
+                logger.debug(f"  This template is designed for social media cards (e.g., Xiaohongshu platform)")
             
             # Log content block details at debug level
             if logger.isEnabledFor(logging.DEBUG):

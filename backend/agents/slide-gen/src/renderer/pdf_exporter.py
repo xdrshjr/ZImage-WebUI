@@ -164,13 +164,14 @@ class PDFExporter:
         dimensions = {
             "16:9": {"width": "297mm", "height": "167mm"},
             "4:3": {"width": "280mm", "height": "210mm"},
-            "16:10": {"width": "297mm", "height": "185mm"}
+            "16:10": {"width": "297mm", "height": "185mm"},
+            "3:4": {"width": "210mm", "height": "280mm"}  # Portrait format for social media cards
         }
         
         dims = dimensions.get(aspect_ratio, dimensions["16:9"])
         logger.debug(f"Using dimensions: {dims['width']} x {dims['height']}")
         
-        # Create CSS for page size
+        # Create CSS for page size and text alignment fix
         page_css = CSS(string=f'''
             @page {{
                 size: {dims['width']} {dims['height']};
@@ -180,9 +181,27 @@ class PDFExporter:
                 margin: 0;
                 padding: 0;
             }}
+            /* Fix text indentation alignment for PDF rendering */
+            .text-content {{
+                text-indent: 0 !important;
+                padding-left: 0 !important;
+                margin-left: 0 !important;
+            }}
+            .text-content::first-line {{
+                text-indent: 0 !important;
+                padding-left: 0 !important;
+                margin-left: 0 !important;
+            }}
+            .text-block-wrapper .text-content,
+            .text-block .text-content {{
+                text-indent: 0 !important;
+                padding-left: 0 !important;
+                margin-left: 0 !important;
+            }}
         ''')
         
         logger.info(f"Exporting {len(html_files)} HTML slides to PDF...")
+        logger.debug("Applying text alignment fix CSS rules for consistent indentation")
         
         # More reliable: render each separately and combine
         from PyPDF2 import PdfMerger
@@ -197,6 +216,7 @@ class PDFExporter:
             html_content = self._fix_image_paths(html_content, html_file.parent)
             
             logger.debug(f"Writing temporary PDF: {temp_pdf.name}")
+            logger.debug(f"Applying text indentation fix CSS to ensure all lines align consistently")
             HTML(string=html_content, base_url=str(html_file.parent)).write_pdf(
                 temp_pdf,
                 stylesheets=[page_css]
@@ -255,7 +275,8 @@ class PDFExporter:
             dimensions = {
                 "16:9": (1920, 1080),
                 "4:3": (1600, 1200),
-                "16:10": (1920, 1200)
+                "16:10": (1920, 1200),
+                "3:4": (1080, 1440)  # Portrait format for social media cards
             }
             
             dims = dimensions.get(aspect_ratio, dimensions["16:9"])

@@ -22,14 +22,18 @@ class HTMLRenderer:
         
         self.env = Environment(
             loader=FileSystemLoader(str(templates_dir)),
-            autoescape=select_autoescape(['html', 'xml'])
+            autoescape=select_autoescape(['html', 'xml']),
+            trim_blocks=True,  # Remove leading newlines after blocks
+            lstrip_blocks=True  # Strip leading spaces and tabs from blocks
         )
+        logger.debug("Jinja2 environment initialized with trim_blocks and lstrip_blocks enabled")
         
         # Aspect ratio dimensions
         self.dimensions = {
             "16:9": {"width": 1920, "height": 1080},
             "4:3": {"width": 1600, "height": 1200},
-            "16:10": {"width": 1920, "height": 1200}
+            "16:10": {"width": 1920, "height": 1200},
+            "3:4": {"width": 1080, "height": 1440}
         }
     
     def render_slide(
@@ -66,6 +70,11 @@ class HTMLRenderer:
         dims = self.dimensions[aspect_ratio]
         logger.debug(f"Slide dimensions: {dims['width']}x{dims['height']}")
         
+        # Log 3:4 aspect ratio usage
+        if aspect_ratio == "3:4":
+            logger.info(f"Using 3:4 portrait aspect ratio (1080x1440) - suitable for social media cards (e.g., Xiaohongshu)")
+            logger.debug(f"Portrait format detected: width={dims['width']}, height={dims['height']}, ratio={dims['width']/dims['height']:.3f}")
+        
         # Calculate available height for content (subtract padding and title area)
         available_height = dims['height'] - 200  # Approximate height after padding and title
         
@@ -88,9 +97,15 @@ class HTMLRenderer:
                 # Validate content
                 char_limit = block.get('char_limit', 500)
                 content = block.get('content', '')
-                block['content'] = self._validate_and_truncate(
+                content = self._validate_and_truncate(
                     content, char_limit, f'content block {i+1}', slide_number
                 )
+                # Fix text indentation: remove leading whitespace from each line to ensure consistent alignment
+                # This fixes the PDF rendering issue where first line has extra indentation
+                original_content = content
+                block['content'] = self._normalize_text_indentation(content)
+                if original_content != block['content']:
+                    logger.debug(f"Block {i+1}: Normalized text indentation to fix PDF alignment issue")
                 logger.debug(f"Block {i+1}: Text content with section title ({len(block['content'])} chars)")
             elif block.get('type') == 'image_placeholder':
                 position = block.get('position', {})
@@ -131,6 +146,7 @@ class HTMLRenderer:
             style=style,
             width=dims['width'],
             height=dims['height'],
+            aspect_ratio=aspect_ratio,
             colors=colors,
             font_scale=scale_factor
         )
@@ -174,4 +190,41 @@ class HTMLRenderer:
         
         logger.debug(f"Slide {slide_number} {field_name} within limits: {original_length}/{max_length} chars")
         return text
+    
+    def _normalize_text_indentation(self, text: str) -> str:
+        """
+        Normalize text indentation by removing leading whitespace from each line.
+        This ensures consistent alignment in PDF rendering, especially for bullet points.
+        The issue is that first line often has leading whitespace while subsequent lines don't,
+        causing misalignment in PDF output (but not in PPTX).
+        
+        Args:
+            text: Text content with potential inconsistent indentation
+            
+        Returns:
+            Text with normalized indentation (all lines start at the same position)
+        """
+        if not text:
+            return text
+        
+        lines = text.split('\n')
+        if not lines:
+            return text
+        
+        # Remove leading whitespace from each line to ensure consistent alignment
+        # This fixes the issue where first line has indentation but subsequent lines don't
+        normalized_lines = []
+        for line in lines:
+            if line.strip():
+                # Remove all leading whitespace from non-empty lines
+                normalized_lines.append(line.lstrip())
+            else:
+                # Preserve empty lines as is
+                normalized_lines.append(line)
+        
+        result = '\n'.join(normalized_lines)
+        if result != text:
+            logger.debug(f"Normalized text indentation: removed leading whitespace from all lines to ensure consistent alignment")
+        
+        return result
 

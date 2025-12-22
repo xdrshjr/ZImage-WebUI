@@ -25,7 +25,8 @@ class PPTExporter:
         self.dimensions = {
             "16:9": {"width": Inches(10), "height": Inches(5.625)},
             "4:3": {"width": Inches(10), "height": Inches(7.5)},
-            "16:10": {"width": Inches(10), "height": Inches(6.25)}
+            "16:10": {"width": Inches(10), "height": Inches(6.25)},
+            "3:4": {"width": Inches(7.5), "height": Inches(10)}  # Portrait format for social media cards
         }
         
         # Color scheme matching the HTML templates (Apple-like design)
@@ -116,6 +117,8 @@ class PPTExporter:
             prs.slide_height = dims['height']
             
             logger.debug(f"Presentation dimensions set: {prs.slide_width} x {prs.slide_height}")
+            if aspect_ratio == "3:4":
+                logger.info(f"Using portrait format (3:4) - optimized for social media cards (Xiaohongshu templates)")
             logger.info("Creating blank presentation template...")
             
             # Process each slide
@@ -272,6 +275,13 @@ class PPTExporter:
             elif template_type == 'image_focus':
                 self._add_image_focus_layout(
                     slide, content_blocks, slide_width, slide_height
+                )
+            elif template_type in ['xiaohongshu_minimal', 'xiaohongshu_fashion', 
+                                   'xiaohongshu_mixed', 'xiaohongshu_bold']:
+                # Xiaohongshu templates use similar layout to image_focus but optimized for portrait
+                logger.debug(f"  Using Xiaohongshu template '{template_type}' - applying portrait-optimized layout")
+                self._add_xiaohongshu_layout(
+                    slide, content_blocks, slide_width, slide_height, template_type
                 )
             else:
                 # Default to title_and_content
@@ -593,6 +603,140 @@ class PPTExporter:
                 para.line_spacing = 1.2
                 
                 logger.debug(f"    ✓ Text positioned at ({x_ratio:.2%}, {y_ratio:.2%})")
+    
+    def _add_xiaohongshu_layout(
+        self,
+        slide,
+        content_blocks: List[Dict[str, Any]],
+        slide_width,
+        slide_height,
+        template_type: str
+    ):
+        """
+        Add content for Xiaohongshu templates (portrait format optimized)
+        
+        Args:
+            slide: Slide object
+            content_blocks: List of content blocks
+            slide_width: Slide width
+            slide_height: Slide height
+            template_type: Type of xiaohongshu template
+        """
+        logger.debug(f"    Applying {template_type} layout (portrait format)")
+        
+        # HTML dimensions for conversion (3:4 aspect ratio)
+        html_width = 1080
+        html_height = 1440
+        
+        # For portrait format, we use a simplified layout similar to image_focus
+        # but optimized for vertical content flow
+        
+        # Find images and text blocks
+        image_blocks = [b for b in content_blocks if b.get('type') == 'image_placeholder']
+        text_blocks = [b for b in content_blocks if b.get('type') == 'text']
+        
+        logger.debug(f"    Found {len(image_blocks)} images and {len(text_blocks)} text blocks")
+        
+        current_y = Inches(1.5)  # Start below title
+        
+        # Add images first (they typically go in the middle for xiaohongshu templates)
+        for i, block in enumerate(image_blocks):
+            image_path = block.get('image_path')
+            position = block.get('position', {})
+            
+            if image_path and Path(image_path).exists():
+                try:
+                    # Convert HTML pixel coordinates to PPT inches
+                    x_ratio = position.get('x', 0) / html_width
+                    y_ratio = position.get('y', 0) / html_height
+                    width_ratio = position.get('width', 200) / html_width
+                    height_ratio = position.get('height', 200) / html_height
+                    
+                    ppt_left = slide_width * x_ratio
+                    ppt_top = slide_height * y_ratio
+                    ppt_width = slide_width * width_ratio
+                    ppt_height = slide_height * height_ratio
+                    
+                    slide.shapes.add_picture(
+                        str(image_path),
+                        ppt_left,
+                        ppt_top,
+                        width=ppt_width,
+                        height=ppt_height
+                    )
+                    current_y = ppt_top + ppt_height + Inches(0.2)
+                    logger.debug(f"    ✓ Image {i+1} added at ({x_ratio:.2%}, {y_ratio:.2%})")
+                except Exception as e:
+                    logger.warning(f"    ⚠ Failed to add image {i+1}: {str(e)}")
+        
+        # Add text blocks below images
+        content_left = Inches(0.6)
+        content_width = slide_width - Inches(1.2)
+        
+        for i, block in enumerate(text_blocks):
+            section_title = block.get('section_title', '')
+            content = block.get('content', '')
+            
+            if not content:
+                continue
+            
+            # Check available space
+            available_height = slide_height - current_y - Inches(0.5)
+            if available_height < Inches(0.3):
+                logger.debug(f"    ⚠ Insufficient space for text block {i+1}, skipping")
+                break
+            
+            # Get position from block if available, otherwise use calculated position
+            position = block.get('position', {})
+            if position:
+                x_ratio = position.get('x', 0) / html_width
+                y_ratio = position.get('y', 0) / html_height
+                width_ratio = position.get('width', 200) / html_width
+                height_ratio = position.get('height', 200) / html_height
+                
+                ppt_left = slide_width * x_ratio
+                ppt_top = slide_height * y_ratio
+                ppt_width = slide_width * width_ratio
+                ppt_height = slide_height * height_ratio
+            else:
+                # Use default positioning
+                ppt_left = content_left
+                ppt_top = current_y
+                ppt_width = content_width
+                ppt_height = min(Inches(1.5), available_height)
+            
+            text_box = slide.shapes.add_textbox(
+                ppt_left,
+                ppt_top,
+                ppt_width,
+                ppt_height
+            )
+            text_frame = text_box.text_frame
+            text_frame.word_wrap = True
+            text_frame.vertical_anchor = MSO_ANCHOR.TOP
+            
+            if section_title:
+                para = text_frame.paragraphs[0]
+                para.text = section_title
+                para.font.size = Pt(16)
+                para.font.bold = True
+                para.font.color.rgb = self.colors['section_header']
+                para.alignment = PP_ALIGN.LEFT
+                para.space_after = Pt(6)
+                
+                para = text_frame.add_paragraph()
+            else:
+                para = text_frame.paragraphs[0]
+            
+            cleaned_content = self._clean_text_content(content)
+            para.text = cleaned_content
+            para.font.size = Pt(14)
+            para.font.color.rgb = self.colors['text']
+            para.alignment = PP_ALIGN.LEFT
+            para.line_spacing = 1.2
+            
+            current_y = ppt_top + ppt_height + Inches(0.15)
+            logger.debug(f"    ✓ Text block {i+1} added")
     
     def _clean_text_content(self, text: str) -> str:
         """

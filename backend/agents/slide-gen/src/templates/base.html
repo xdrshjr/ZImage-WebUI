@@ -39,6 +39,25 @@
             color: {{ colors.text }};
         }
         
+        /* Portrait layout optimization for 3:4 aspect ratio */
+        @media (max-aspect-ratio: 1/1) {
+            .slide {
+                /* Optimize padding for portrait/vertical layouts */
+                padding: 50px 60px;
+            }
+            
+            h1.slide-title {
+                /* Adjust title size for portrait layouts */
+                margin-bottom: 30px;
+                font-size: calc(var(--title-size) * 0.9);
+            }
+            
+            .content-area {
+                /* Optimize gap for vertical layouts */
+                gap: 30px;
+            }
+        }
+        
         /* Styles */
         .slide.professional,
         .slide.creative,
@@ -71,6 +90,14 @@
             max-height: calc(var(--title-size) * 1.1 * 2); /* font-size * line-height * max-lines */
         }
         
+        /* Portrait-specific title adjustments */
+        body[data-aspect-ratio="3:4"] h1.slide-title,
+        body[style*="height: 1440px"] h1.slide-title {
+            font-size: calc(var(--title-size) * 0.95);
+            margin-bottom: 35px;
+            padding-left: 24px;
+        }
+        
         h1.slide-title::before {
             content: '';
             position: absolute;
@@ -89,18 +116,51 @@
             position: relative;
         }
         
+        /* Portrait layout content area optimization */
+        body[data-aspect-ratio="3:4"] .content-area,
+        body[style*="height: 1440px"] .content-area {
+            gap: 30px;
+            flex-direction: column;
+        }
+        
         .text-content {
             font-size: var(--content-size);
-            line-height: 1.4;
+            line-height: 1.5;
             font-weight: 400;
             color: {{ colors.text }};
             white-space: pre-wrap;
             text-align: left; /* Ensure left alignment for all text content */
             
-            /* Text Overflow Protection */
-            overflow: hidden;
+            /* Text Overflow Protection - allow content to flow naturally */
+            overflow: visible;
             word-wrap: break-word;
             overflow-wrap: break-word;
+            margin-top: 0;
+            margin-bottom: 0;
+            
+            /* Fix text indentation alignment - ensure all lines align consistently */
+            text-indent: 0;
+            padding-left: 0;
+            margin-left: 0;
+        }
+        
+        /* Ensure first line has no extra indentation in PDF rendering */
+        .text-content::first-line {
+            text-indent: 0;
+            padding-left: 0;
+            margin-left: 0;
+        }
+        
+        /* Text block wrapper for consistent spacing */
+        .text-block-wrapper {
+            /* Ensure consistent left alignment */
+        }
+        
+        /* Portrait layout text content optimization */
+        body[data-aspect-ratio="3:4"] .text-content,
+        body[style*="height: 1440px"] .text-content {
+            font-size: calc(var(--content-size) * 0.9);
+            line-height: 1.5;
         }
         
         /* Text Overflow Safe Class - For blocks with explicit height constraints */
@@ -115,7 +175,7 @@
         .section-header {
             font-size: var(--header-size);
             font-weight: 600;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             color: {{ colors.header }};
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -132,14 +192,46 @@
         
         /* Lists */
         ul, ol {
-            margin-left: 1.2em;
-            margin-top: 0.5em;
+            margin-left: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+            padding-left: 0;
             text-align: left;
+            list-style: none;
         }
         
         li {
-            margin-bottom: 0.5em;
-            padding-left: 0.2em;
+            margin-bottom: 0.4em;
+            padding-left: 0;
+            text-indent: 0;
+        }
+        
+        /* Bullet point styling for text content with bullet characters (•) */
+        /* Ensure consistent indentation for all bullet points and alignment with section headers */
+        .text-block-wrapper .text-content {
+            margin-left: 0;
+            padding-left: 0;
+            text-indent: 0;
+        }
+        
+        /* Fix first line indentation issue in PDF rendering - ensure all lines align */
+        .text-content,
+        .text-block-wrapper .text-content,
+        .text-block .text-content {
+            text-indent: 0 !important;
+        }
+        
+        .text-content::first-line {
+            text-indent: 0 !important;
+            padding-left: 0 !important;
+            margin-left: 0 !important;
+        }
+        
+        /* Align section headers with text content (accounting for icon if present) */
+        .text-block-wrapper .section-header-with-icon,
+        .text-block-wrapper .section-header {
+            margin-left: 0;
+            padding-left: 0;
         }
         
         /* Image Container */
@@ -205,7 +297,9 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
+            margin-left: 0;
+            padding-left: 0;
         }
         
         .section-icon {
@@ -219,6 +313,8 @@
         .section-header-with-icon .section-header {
             margin-bottom: 0; /* Remove bottom margin when inside icon wrapper */
             flex: 1;
+            margin-left: 0;
+            padding-left: 0;
         }
         
         /* Bullet point icon styling - for future use */
@@ -245,7 +341,7 @@
             width: 60px;
             height: 3px;
             background: linear-gradient(90deg, {{ colors.accent }} 0%, transparent 100%);
-            margin: 20px 0;
+            margin: 24px 0 20px 0;
             border-radius: 2px;
             opacity: 0.8;
         }
@@ -265,7 +361,7 @@
                 {{ colors.accent }}40 20%, 
                 {{ colors.accent }}40 80%, 
                 transparent 100%);
-            margin: 30px 0;
+            margin: 20px 0 24px 0;
         }
         
         /* Enhanced title bar with subtle effects */
@@ -321,7 +417,7 @@
         
     </style>
 </head>
-<body>
+<body {% if aspect_ratio %}data-aspect-ratio="{{ aspect_ratio }}"{% endif %}>
     {% include "icons.html" %}
     {% block content %}
     {% endblock %}

@@ -18,7 +18,8 @@ class ImageExporter:
         self.dimensions = {
             "16:9": {"width": 1920, "height": 1080},
             "4:3": {"width": 1600, "height": 1200},
-            "16:10": {"width": 1920, "height": 1200}
+            "16:10": {"width": 1920, "height": 1200},
+            "3:4": {"width": 1080, "height": 1440}  # Portrait format for social media cards (Xiaohongshu)
         }
     
     def export_html_to_image(
@@ -83,7 +84,7 @@ class ImageExporter:
             logger.info("Install it with: pip install playwright && playwright install chromium")
             raise
         
-        dims = self.dimensions[aspect_ratio]
+        dims = self.dimensions.get(aspect_ratio, self.dimensions["16:9"])
         logger.debug(f"Viewport size: {dims['width']}x{dims['height']}")
         
         async with async_playwright() as p:
@@ -138,7 +139,7 @@ class ImageExporter:
         try:
             from PIL import Image, ImageDraw
             
-            dims = self.dimensions[aspect_ratio]
+            dims = self.dimensions.get(aspect_ratio, self.dimensions["16:9"])
             logger.debug(f"Creating placeholder image at {dims['width']}x{dims['height']}")
             
             # Create placeholder image

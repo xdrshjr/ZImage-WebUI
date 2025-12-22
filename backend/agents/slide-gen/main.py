@@ -47,6 +47,7 @@ def main():
     logger = logging.getLogger(__name__)
     
     # Hardcoded test parameters
+    # 16:9, professional; 3:4, fashion
     params = {
         "base_text": "Introduction to Artificial Intelligence and its applications in modern technology",
         "num_slides": 4,

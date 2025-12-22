@@ -28,7 +28,7 @@
                                     <div class="section-header">{{ block.section_title }}</div>
                                 {% endif %}
                             {% endif %}
-                            <div class="text-content text-overflow-safe" style="-webkit-line-clamp: 8; max-height: calc(var(--content-size) * 1.4 * 8);">{{ block.content }}</div>
+                            <div class="text-content text-overflow-safe" style="-webkit-line-clamp: 8; max-height: calc(var(--content-size) * 1.4 * 8);">{{- block.content -}}</div>
                         </div>
                         {% set left_block_count.value = left_block_count.value + 1 %}
                     {% elif block.type == 'image_placeholder' and block.image_path and block.position.x < width // 2 %}
@@ -65,7 +65,7 @@
                                     <div class="section-header">{{ block.section_title }}</div>
                                 {% endif %}
                             {% endif %}
-                            <div class="text-content text-overflow-safe" style="-webkit-line-clamp: 8; max-height: calc(var(--content-size) * 1.4 * 8);">{{ block.content }}</div>
+                            <div class="text-content text-overflow-safe" style="-webkit-line-clamp: 8; max-height: calc(var(--content-size) * 1.4 * 8);">{{- block.content -}}</div>
                         </div>
                         {% set right_block_count.value = right_block_count.value + 1 %}
                     {% elif block.type == 'image_placeholder' and block.image_path and block.position.x >= width // 2 %}

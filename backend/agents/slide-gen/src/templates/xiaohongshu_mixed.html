@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .xhs-mixed-content-block {
+        margin-bottom: 25px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .xhs-mixed-image-text-row {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+        margin-bottom: 20px;
+    }
+    
+    .xhs-mixed-image-small {
+        flex-shrink: 0;
+        width: 200px;
+        height: 200px;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .xhs-mixed-text-inline {
+        flex: 1;
+        padding: 15px 20px;
+        background: linear-gradient(135deg, {{ colors.background }} 0%, {{ colors.accent }}05 100%);
+        border-radius: 12px;
+        border-left: 3px solid {{ colors.accent }};
+    }
+    
+    .xhs-mixed-image-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+    }
+    
+    .xhs-mixed-image-grid-item {
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+        aspect-ratio: 1;
+    }
+</style>
+
+<div class="slide {{ style }}" style="padding: 45px 55px;">
+    <!-- Title Area -->
+    <div style="margin-bottom: 35px;">
+        <h1 class="slide-title" style="font-size: calc(var(--title-size) * 1.1); margin-bottom: 0;">
+            {{ title }}
+        </h1>
+    </div>
+    
+    <!-- Mixed Content Area -->
+    <div class="content-area" style="flex: 1; flex-direction: column; gap: 0; overflow-y: auto; padding-right: 10px;">
+        {% set image_blocks = [] %}
+        {% set text_blocks = [] %}
+        {% for block in content_blocks %}
+            {% if block.type == 'image_placeholder' and block.image_path %}
+                {% set _ = image_blocks.append(block) %}
+            {% elif block.type == 'text' %}
+                {% set _ = text_blocks.append(block) %}
+            {% endif %}
+        {% endfor %}
+        
+        {% set image_index = namespace(value=0) %}
+        {% set text_index = namespace(value=0) %}
+        {% set block_count = image_blocks|length + text_blocks|length %}
+        
+        {% for i in range(block_count) %}
+            {% if image_index.value < image_blocks|length and (text_index.value >= text_blocks|length or i % 2 == 0) %}
+                <!-- Image Block -->
+                {% set block = image_blocks[image_index.value] %}
+                {% if image_blocks|length >= 2 and image_index.value < 2 %}
+                    <!-- First two images in grid -->
+                    {% if image_index.value == 0 %}
+                        <div class="xhs-mixed-image-grid">
+                    {% endif %}
+                    <div class="xhs-mixed-image-grid-item image-container" style="position: relative; width: 100%; height: 100%; margin: 0;">
+                        <img src="{{ block.image_path }}" alt="Slide image" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    {% if image_index.value == 1 or (image_index.value == 0 and image_blocks|length == 1) %}
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <!-- Single image or image with text side by side -->
+                    {% if text_index.value < text_blocks|length %}
+                        <div class="xhs-mixed-image-text-row">
+                            <div class="xhs-mixed-image-small image-container" style="position: relative; margin: 0;">
+                                <img src="{{ block.image_path }}" alt="Slide image" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                            {% set text_block = text_blocks[text_index.value] %}
+                            <div class="xhs-mixed-text-inline">
+                                {% if text_block.section_title %}
+                                    <div class="section-header" style="font-size: calc(var(--header-size) * 0.85); margin-bottom: 10px; text-transform: none;">
+                                        {{ text_block.section_title }}
+                                    </div>
+                                {% endif %}
+                                <div class="text-content text-overflow-safe" style="font-size: calc(var(--content-size) * 0.8); line-height: 1.5; -webkit-line-clamp: 4; max-height: calc(var(--content-size) * 0.8 * 1.5 * 4);">{{- text_block.content -}}</div>
+                            </div>
+                            {% set text_index.value = text_index.value + 1 %}
+                        </div>
+                    {% else %}
+                        <div class="xhs-mixed-content-block">
+                            <div class="image-container" style="position: relative; width: 100%; height: 300px; margin: 0; border-radius: 18px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);">
+                                <img src="{{ block.image_path }}" alt="Slide image" style="border-radius: 18px;">
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endif %}
+                {% set image_index.value = image_index.value + 1 %}
+            {% elif text_index.value < text_blocks|length %}
+                <!-- Text Block -->
+                {% set block = text_blocks[text_index.value] %}
+                <div class="xhs-mixed-content-block">
+                    {% if block.section_title %}
+                        <div class="section-header" style="font-size: calc(var(--header-size) * 0.9); margin-bottom: 12px; text-transform: none; padding-left: 20px; border-left: 3px solid {{ colors.accent }};">
+                            {{ block.section_title }}
+                        </div>
+                    {% endif %}
+                    <div class="text-content text-overflow-safe" style="font-size: calc(var(--content-size) * 0.85); line-height: 1.6; -webkit-line-clamp: 5; max-height: calc(var(--content-size) * 0.85 * 1.6 * 5); padding: 0 20px;">{{- block.content -}}</div>
+                </div>
+                {% set text_index.value = text_index.value + 1 %}
+            {% endif %}
+        {% endfor %}
+        
+        <!-- Handle remaining images -->
+        {% if image_index.value < image_blocks|length %}
+            {% if image_blocks|length - image_index.value >= 2 %}
+                <div class="xhs-mixed-image-grid">
+                    {% for i in range(image_index.value, image_blocks|length) %}
+                        {% if i < image_blocks|length and i < image_index.value + 4 %}
+                            <div class="xhs-mixed-image-grid-item image-container" style="position: relative; width: 100%; height: 100%; margin: 0;">
+                                <img src="{{ image_blocks[i].image_path }}" alt="Slide image" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                {% for i in range(image_index.value, image_blocks|length) %}
+                    <div class="xhs-mixed-content-block">
+                        <div class="image-container" style="position: relative; width: 100%; height: 250px; margin: 0; border-radius: 16px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);">
+                            <img src="{{ image_blocks[i].image_path }}" alt="Slide image" style="border-radius: 16px;">
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endif %}
+        
+        <!-- Handle remaining text blocks -->
+        {% if text_index.value < text_blocks|length %}
+            {% for i in range(text_index.value, text_blocks|length) %}
+                {% set block = text_blocks[i] %}
+                <div class="xhs-mixed-content-block">
+                    {% if block.section_title %}
+                        <div class="section-header" style="font-size: calc(var(--header-size) * 0.9); margin-bottom: 12px; text-transform: none; padding-left: 20px; border-left: 3px solid {{ colors.accent }};">
+                            {{ block.section_title }}
+                        </div>
+                    {% endif %}
+                    <div class="text-content text-overflow-safe" style="font-size: calc(var(--content-size) * 0.85); line-height: 1.6; -webkit-line-clamp: 5; max-height: calc(var(--content-size) * 0.85 * 1.6 * 5); padding: 0 20px;">{{- block.content -}}</div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

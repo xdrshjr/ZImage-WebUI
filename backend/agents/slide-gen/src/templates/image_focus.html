@@ -33,7 +33,7 @@
                     {% endif %}
                     {# Calculate header height dynamically based on CSS variable - add icon height if present #}
                     {% set header_height = 'var(--header-size) * 1.2 + 16px' if block.section_title else '0px' %}
-                    <div class="text-content text-overflow-safe" style="max-height: calc({{ block.position.height }}px - ({% if block.section_title %}{{ header_height }}{% else %}0px{% endif %})); -webkit-line-clamp: 8; overflow: hidden; word-wrap: break-word;">{{ block.content }}</div>
+                    <div class="text-content text-overflow-safe" style="max-height: calc({{ block.position.height }}px - ({% if block.section_title %}{{ header_height }}{% else %}0px{% endif %})); -webkit-line-clamp: 8; overflow: hidden; word-wrap: break-word;">{{- block.content -}}</div>
                 </div>
             {% elif block.type == 'image_placeholder' and block.image_path %}
                 {% set img_x = [block.position.x, 60]|max %}

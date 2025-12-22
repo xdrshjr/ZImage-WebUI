@@ -2,7 +2,10 @@
 Input validation utilities
 """
 
+import logging
 from typing import Dict, Any, Optional
+
+logger = logging.getLogger(__name__)
 
 
 class ColorScheme:
@@ -74,7 +77,7 @@ class ColorScheme:
 class InputValidator:
     """Validates input parameters for slide generation"""
     
-    VALID_ASPECT_RATIOS = ["16:9", "4:3", "16:10"]
+    VALID_ASPECT_RATIOS = ["16:9", "4:3", "16:10", "3:4"]
     VALID_STYLES = ["professional", "creative", "minimal", "academic"]
     VALID_CONTENT_RICHNESS = ["concise", "moderate", "detailed"]
     VALID_COLOR_SCHEMES = ColorScheme.get_available_schemes()
@@ -108,8 +111,17 @@ class InputValidator:
             return False, "num_slides must be between 1 and 50"
         
         # Validate aspect_ratio
-        if params["aspect_ratio"] not in InputValidator.VALID_ASPECT_RATIOS:
+        aspect_ratio = params.get("aspect_ratio")
+        logger.debug(f"Validating aspect ratio: {aspect_ratio}")
+        logger.debug(f"Available aspect ratios: {InputValidator.VALID_ASPECT_RATIOS}")
+        
+        if aspect_ratio not in InputValidator.VALID_ASPECT_RATIOS:
+            logger.warning(f"Invalid aspect ratio '{aspect_ratio}' provided. Must be one of {InputValidator.VALID_ASPECT_RATIOS}")
             return False, f"aspect_ratio must be one of {InputValidator.VALID_ASPECT_RATIOS}"
+        
+        logger.debug(f"Aspect ratio '{aspect_ratio}' validated successfully")
+        if aspect_ratio == "3:4":
+            logger.debug("3:4 aspect ratio detected - portrait format suitable for social media cards (e.g., Xiaohongshu)")
         
         # Validate style
         if params["style"] not in InputValidator.VALID_STYLES:

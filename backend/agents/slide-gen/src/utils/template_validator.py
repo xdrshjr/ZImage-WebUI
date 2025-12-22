@@ -12,7 +12,17 @@ class TemplateValidator:
     """Validates and enforces template selection rules for slide generation"""
     
     # Valid template types
-    VALID_TEMPLATES = ['title_and_content', 'two_column', 'image_focus']
+    VALID_TEMPLATES = [
+        'title_and_content', 'two_column', 'image_focus',
+        'xiaohongshu_minimal', 'xiaohongshu_fashion', 
+        'xiaohongshu_mixed', 'xiaohongshu_bold'
+    ]
+    
+    # Xiaohongshu templates (for 3:4 aspect ratio)
+    XIAOHONGSHU_TEMPLATES = [
+        'xiaohongshu_minimal', 'xiaohongshu_fashion',
+        'xiaohongshu_mixed', 'xiaohongshu_bold'
+    ]
     
     # Default template if validation fails
     DEFAULT_TEMPLATE = 'title_and_content'
@@ -23,7 +33,8 @@ class TemplateValidator:
         slide_number: int,
         total_slides: int,
         previous_templates: List[str],
-        slide_title: str
+        slide_title: str,
+        aspect_ratio: Optional[str] = None
     ) -> str:
         """
         Validate and potentially override template selection to ensure diversity
@@ -34,11 +45,43 @@ class TemplateValidator:
             total_slides: Total number of slides
             previous_templates: List of templates used in previous slides
             slide_title: Title of current slide for logging
+            aspect_ratio: Aspect ratio (e.g., "3:4", "16:9") - used for template recommendations
             
         Returns:
             Validated and potentially corrected template type
         """
         original_template = selected_template
+        
+        # Step 0: Special handling for 3:4 aspect ratio - prefer Xiaohongshu templates
+        if aspect_ratio == "3:4":
+            logger.debug(f"Slide {slide_number}: 3:4 aspect ratio detected - prioritizing Xiaohongshu templates")
+            # If LLM selected a non-xiaohongshu template, suggest a xiaohongshu one
+            if selected_template not in TemplateValidator.XIAOHONGSHU_TEMPLATES:
+                # Check if any xiaohongshu template was used before
+                used_xiaohongshu = [t for t in previous_templates if t in TemplateValidator.XIAOHONGSHU_TEMPLATES]
+                if used_xiaohongshu:
+                    # Use a different xiaohongshu template for variety
+                    available = [t for t in TemplateValidator.XIAOHONGSHU_TEMPLATES if t not in used_xiaohongshu[-2:]]
+                    if available:
+                        selected_template = available[0]
+                        logger.info(
+                            f"Slide {slide_number}: 3:4 aspect ratio - switched to Xiaohongshu template "
+                            f"'{selected_template}' (was '{original_template}')"
+                        )
+                    else:
+                        # All xiaohongshu templates used recently, use the least recent one
+                        selected_template = TemplateValidator.XIAOHONGSHU_TEMPLATES[0]
+                        logger.info(
+                            f"Slide {slide_number}: 3:4 aspect ratio - using Xiaohongshu template "
+                            f"'{selected_template}' for variety"
+                        )
+                else:
+                    # First xiaohongshu template, use minimal as default
+                    selected_template = 'xiaohongshu_minimal'
+                    logger.info(
+                        f"Slide {slide_number}: 3:4 aspect ratio - using Xiaohongshu template "
+                        f"'{selected_template}' (was '{original_template}')"
+                    )
         
         # Step 1: Validate template is one of the allowed types
         if selected_template not in TemplateValidator.VALID_TEMPLATES:
@@ -106,7 +149,11 @@ class TemplateValidator:
         template_counts = {
             'title_and_content': 0,
             'two_column': 0,
-            'image_focus': 0
+            'image_focus': 0,
+            'xiaohongshu_minimal': 0,
+            'xiaohongshu_fashion': 0,
+            'xiaohongshu_mixed': 0,
+            'xiaohongshu_bold': 0
         }
         
         template_sequence = []
@@ -122,16 +169,46 @@ class TemplateValidator:
         logger.info("=" * 60)
         logger.info(f"Total slides: {len(slides)}")
         logger.info(f"Template usage:")
-        for template, count in template_counts.items():
-            percentage = (count / len(slides)) * 100 if slides else 0
-            logger.info(f"  - {template}: {count} slides ({percentage:.1f}%)")
+        
+        # Group templates for better readability
+        standard_templates = ['title_and_content', 'two_column', 'image_focus']
+        xiaohongshu_templates = ['xiaohongshu_minimal', 'xiaohongshu_fashion', 'xiaohongshu_mixed', 'xiaohongshu_bold']
+        
+        # Log standard templates
+        standard_count = 0
+        for template in standard_templates:
+            count = template_counts.get(template, 0)
+            if count > 0:
+                percentage = (count / len(slides)) * 100 if slides else 0
+                logger.info(f"  - {template}: {count} slides ({percentage:.1f}%)")
+                standard_count += count
+        
+        # Log xiaohongshu templates
+        xiaohongshu_count = 0
+        for template in xiaohongshu_templates:
+            count = template_counts.get(template, 0)
+            if count > 0:
+                percentage = (count / len(slides)) * 100 if slides else 0
+                logger.info(f"  - {template}: {count} slides ({percentage:.1f}%)")
+                xiaohongshu_count += count
+        
+        # Log unknown templates
+        for template in template_sequence:
+            if template not in template_counts:
+                logger.debug(f"  - {template}: unknown template type")
         
         logger.info(f"Template sequence: {' → '.join(template_sequence)}")
         
-        # Warn if too homogeneous
-        max_count = max(template_counts.values())
+        # Log template category summary
+        if xiaohongshu_count > 0:
+            logger.info(f"Xiaohongshu templates used: {xiaohongshu_count} slides ({(xiaohongshu_count/len(slides)*100):.1f}%)")
+            logger.debug("Xiaohongshu templates are optimized for 3:4 portrait aspect ratio (social media cards)")
+        
+        # Warn if too homogeneous (only check standard templates for now)
+        standard_template_counts = {t: template_counts.get(t, 0) for t in standard_templates}
+        max_count = max(standard_template_counts.values()) if standard_template_counts.values() else 0
         if max_count > len(slides) * 0.7 and len(slides) > 3:
-            dominant_template = [t for t, c in template_counts.items() if c == max_count][0]
+            dominant_template = [t for t, c in standard_template_counts.items() if c == max_count][0]
             logger.warning(
                 f"⚠ Template distribution is not diverse: '{dominant_template}' used in "
                 f"{max_count}/{len(slides)} slides ({(max_count/len(slides)*100):.1f}%)"

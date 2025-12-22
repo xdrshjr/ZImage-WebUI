@@ -9,6 +9,60 @@ class PromptTemplates:
     """Collection of prompt templates for slide generation"""
     
     @staticmethod
+    def _build_template_selection_list(aspect_ratio: str) -> str:
+        """
+        Build template selection list for user prompt
+        
+        Args:
+            aspect_ratio: Aspect ratio string
+            
+        Returns:
+            Formatted template list string
+        """
+        if aspect_ratio == "3:4":
+            return """- For 3:4 aspect ratio, choose from Xiaohongshu templates:
+  * "xiaohongshu_minimal": Clean, minimalist design - best for products, lifestyle, simple aesthetics
+  * "xiaohongshu_fashion": Fashion-forward design - best for fashion, beauty, trendy content
+  * "xiaohongshu_mixed": Flexible mixed layout - best for tutorials, guides, lists, multi-image content
+  * "xiaohongshu_bold": High-impact visual design - best for scenic photos, food, art, visual showcases"""
+        else:
+            return """- For standard aspect ratios, choose from standard templates:
+  * "title_and_content": For multiple organized sections with bullet points and supporting visuals
+  * "two_column": For side-by-side comparisons with multiple sections in each column
+  * "image_focus": For visual showcases with organized bullet points below"""
+    
+    @staticmethod
+    def _build_template_selection_rules(aspect_ratio: str, total_slides: int) -> str:
+        """
+        Build template selection rules based on aspect ratio
+        
+        Args:
+            aspect_ratio: Aspect ratio string
+            total_slides: Total number of slides
+            
+        Returns:
+            Formatted rules string
+        """
+        if aspect_ratio == "3:4":
+            return f"""- For 3:4 aspect ratio (portrait/social media cards):
+  * MUST use one of the Xiaohongshu templates (xiaohongshu_minimal, xiaohongshu_fashion, xiaohongshu_mixed, xiaohongshu_bold)
+  * Vary between different Xiaohongshu templates for visual variety
+  * Choose template based on content type:
+    - Minimal products/lifestyle → xiaohongshu_minimal
+    - Fashion/beauty/trendy → xiaohongshu_fashion
+    - Tutorials/guides/lists → xiaohongshu_mixed
+    - Visual showcases/scenic → xiaohongshu_bold
+  * NEVER use the same Xiaohongshu template for 3+ consecutive slides
+  * Actively vary between different Xiaohongshu templates"""
+        else:
+            return f"""- For standard aspect ratios (16:9, 4:3, 16:10):
+  * Slide 1 (title/intro): MUST use "title_and_content" for clear, comprehensive introduction
+  * Slides 2-{total_slides-1} (body): MUST vary between all three templates based on content
+  * Last slide (conclusion): SHOULD use "image_focus" for visual impact (unless content demands otherwise)
+  * NEVER use the same template for 3+ consecutive slides
+  * Actively look for opportunities to use "two_column" and "image_focus\""""
+    
+    @staticmethod
     def outline_generation_prompt(
         base_text: str,
         num_slides: int,
@@ -98,9 +152,10 @@ Please generate a structured outline with {num_slides} slides, each having multi
         dimensions = {
             "16:9": {"width": 1920, "height": 1080},
             "4:3": {"width": 1600, "height": 1200},
-            "16:10": {"width": 1920, "height": 1200}
+            "16:10": {"width": 1920, "height": 1200},
+            "3:4": {"width": 1080, "height": 1440}
         }
-        dims = dimensions[aspect_ratio]
+        dims = dimensions.get(aspect_ratio, dimensions["16:9"])
         
         # Character limits based on content richness - for bullet point text blocks
         char_limits = {
@@ -110,9 +165,9 @@ Please generate a structured outline with {num_slides} slides, each having multi
         }
         limits = char_limits[content_richness]
         
-        # Determine recommended template based on slide position and keywords
+        # Determine recommended template based on slide position, keywords, and aspect ratio
         recommended_template = PromptTemplates._recommend_template(
-            slide_outline, slide_number, total_slides
+            slide_outline, slide_number, total_slides, aspect_ratio
         )
         
         system_prompt = f"""You are an expert slide designer specializing in academic and professional presentations. Create detailed, visually appealing slide layouts with MULTIPLE text blocks, each containing organized bullet points.
@@ -128,6 +183,8 @@ CONTENT STRUCTURE REQUIREMENT - VERY IMPORTANT:
 - Typical slide should have 2-3 text blocks + 1-2 images
 
 Available templates and when to use them:
+
+STANDARD TEMPLATES (for 16:9, 4:3, 16:10 aspect ratios):
 1. "title_and_content": Standard layout with multiple text sections and supporting images
    - Use when: Content has multiple sections with bullet points and 1-2 supporting visuals
    - Layout: Title at top, multiple text blocks (left/center) each with section title + bullets, 1-2 images on right
@@ -146,14 +203,35 @@ Available templates and when to use them:
    - Best for: Demonstrations, visual examples, impactful showcases
    - Image margins: 60px horizontal margins, 40px bottom margin
 
+XIAOHONGSHU TEMPLATES (for 3:4 portrait aspect ratio - social media cards):
+4. "xiaohongshu_minimal": Clean, minimalist design with large title and focused content
+   - Use when: Product showcases, lifestyle content, simple aesthetic presentations
+   - Layout: Large title (top 20%), centered main image (50-60%), concise bullet points (bottom 20-30%)
+   - Best for: Clean product displays, minimalist aesthetics, elegant presentations
+   - Design: Lots of white space, rounded corners, fresh and simple
+   
+5. "xiaohongshu_fashion": Fashion-forward design with decorative elements
+   - Use when: Fashion, beauty, trendy content, style-focused presentations
+   - Layout: Title with decorative elements, image with borders/shadows, card-style text blocks
+   - Best for: Fashion trends, beauty tips, style guides, trendy content
+   - Design: Gradient backgrounds, decorative icons, modern card layouts
+   
+6. "xiaohongshu_mixed": Flexible mixed layout for multiple images and text
+   - Use when: Tutorials, guides, lists, comparisons with multiple visuals
+   - Layout: Flexible arrangement - images and text can alternate or be side-by-side
+   - Best for: Step-by-step guides, comparison lists, multi-image showcases
+   - Design: Flexible grid, supports 2-4 images, organized text blocks
+   
+7. "xiaohongshu_bold": High-impact visual design with image overlay
+   - Use when: Scenic photos, food, art, visual showcases
+   - Layout: Large image (70-80% space), title overlaid on image, compact text at bottom
+   - Best for: Visual impact, scenic content, artistic presentations, food photography
+   - Design: High contrast, title with semi-transparent background, bold typography
+
 Slide dimensions: {dims['width']}x{dims['height']}
 
 MANDATORY TEMPLATE SELECTION RULES:
-- Slide 1 (title/intro): MUST use "title_and_content" for clear, comprehensive introduction
-- Slides 2-{total_slides-1} (body): MUST vary between all three templates based on content
-- Last slide (conclusion): SHOULD use "image_focus" for visual impact (unless content demands otherwise)
-- NEVER use the same template for 3+ consecutive slides
-- Actively look for opportunities to use "two_column" and "image_focus"
+{PromptTemplates._build_template_selection_rules(aspect_ratio, total_slides)}
 
 RECOMMENDED TEMPLATE FOR THIS SLIDE: {recommended_template}
 (You may override this if content strongly suggests a different template)
@@ -327,15 +405,14 @@ Content Richness: {content_richness}
 
 TEMPLATE SELECTION (CRITICAL):
 You MUST select ONE of these templates - analyze the content carefully:
-- "title_and_content": For multiple organized sections with bullet points and supporting visuals
-- "two_column": For side-by-side comparisons with multiple sections in each column
-- "image_focus": For visual showcases with organized bullet points below
+{PromptTemplates._build_template_selection_list(aspect_ratio)}
 
 ANALYSIS CHECKLIST:
-1. Slide position: {slide_number} of {total_slides} (first? middle? last?)
-2. Content type: Multiple sections? Comparison? Visual-heavy?
-3. Sections count: {len(slide_outline.get('sections', []))} sections to present
-4. Recommended template: {recommended_template} (strongly consider using this)
+1. Aspect ratio: {aspect_ratio} {"(portrait format - use Xiaohongshu templates)" if aspect_ratio == "3:4" else "(standard format - use standard templates)"}
+2. Slide position: {slide_number} of {total_slides} (first? middle? last?)
+3. Content type: Multiple sections? Comparison? Visual-heavy? {"Fashion/beauty? Tutorial? Scenic?" if aspect_ratio == "3:4" else ""}
+4. Sections count: {len(slide_outline.get('sections', []))} sections to present
+5. Recommended template: {recommended_template} (strongly consider using this)
 
 CONTENT STRUCTURE REQUIREMENTS - VERY IMPORTANT:
 - Create MULTIPLE separate text blocks (one per section from outline)
@@ -383,23 +460,64 @@ Create a visually appealing, well-structured layout with multiple content blocks
     def _recommend_template(
         slide_outline: Dict[str, Any],
         slide_number: int,
-        total_slides: int
+        total_slides: int,
+        aspect_ratio: str = "16:9"
     ) -> str:
         """
-        Recommend a template based on slide position and content analysis
+        Recommend a template based on slide position, content analysis, and aspect ratio
         
         Args:
             slide_outline: The slide outline with title and key points
             slide_number: Current slide number (1-indexed)
             total_slides: Total number of slides
+            aspect_ratio: Aspect ratio (e.g., "3:4", "16:9")
             
         Returns:
             Recommended template type string
         """
         title = slide_outline.get('title', '').lower()
+        sections = slide_outline.get('sections', [])
         key_points = slide_outline.get('key_points', [])
-        key_points_text = ' '.join(key_points).lower()
         
+        # Combine all text for keyword analysis
+        all_text = title
+        if sections:
+            for section in sections:
+                if isinstance(section, dict):
+                    all_text += ' ' + section.get('section_title', '').lower()
+                    all_text += ' ' + ' '.join(section.get('bullet_points', [])).lower()
+        all_text += ' ' + ' '.join(key_points).lower()
+        
+        # For 3:4 aspect ratio, recommend Xiaohongshu templates
+        if aspect_ratio == "3:4":
+            # Check for fashion/beauty/trendy keywords -> xiaohongshu_fashion
+            fashion_keywords = [
+                'fashion', 'style', 'beauty', 'makeup', 'trend', 'trendy', 'outfit',
+                'wear', 'dress', 'cosmetic', 'skincare', 'glamour', 'chic', 'elegant'
+            ]
+            if any(keyword in all_text for keyword in fashion_keywords):
+                return "xiaohongshu_fashion"
+            
+            # Check for tutorial/guide/list keywords -> xiaohongshu_mixed
+            tutorial_keywords = [
+                'tutorial', 'guide', 'how to', 'step', 'list', 'checklist', 'tips',
+                'method', 'way', 'process', 'procedure', 'instruction', 'recipe'
+            ]
+            if any(keyword in all_text for keyword in tutorial_keywords):
+                return "xiaohongshu_mixed"
+            
+            # Check for visual/scenic keywords -> xiaohongshu_bold
+            visual_keywords = [
+                'scenic', 'landscape', 'food', 'cuisine', 'art', 'artistic', 'photo',
+                'photography', 'view', 'scene', 'beautiful', 'stunning', 'breathtaking'
+            ]
+            if any(keyword in all_text for keyword in visual_keywords):
+                return "xiaohongshu_bold"
+            
+            # Default for 3:4: use minimal (clean and versatile)
+            return "xiaohongshu_minimal"
+        
+        # For standard aspect ratios, use original logic
         # First slide: always title_and_content for introduction
         if slide_number == 1:
             return "title_and_content"
@@ -414,7 +532,7 @@ Create a visually appealing, well-structured layout with multiple content blocks
             'before', 'after', 'pros', 'cons', 'advantages', 'disadvantages',
             'traditional', 'modern', 'old', 'new', 'left', 'right'
         ]
-        if any(keyword in title or keyword in key_points_text for keyword in comparison_keywords):
+        if any(keyword in all_text for keyword in comparison_keywords):
             return "two_column"
         
         # Check for visual/showcase keywords -> image_focus
@@ -423,7 +541,7 @@ Create a visually appealing, well-structured layout with multiple content blocks
             'photo', 'illustration', 'diagram', 'chart', 'graph', 'result',
             'output', 'screenshot', 'gallery', 'preview'
         ]
-        if any(keyword in title or keyword in key_points_text for keyword in visual_keywords):
+        if any(keyword in all_text for keyword in visual_keywords):
             return "image_focus"
         
         # Middle slides: vary based on position to ensure diversity

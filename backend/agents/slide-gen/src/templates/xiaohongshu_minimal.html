@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="slide {{ style }}" style="padding: 50px 60px;">
+    <!-- Title Area: Top 20% -->
+    <div class="xhs-title-area" style="height: 20%; display: flex; align-items: center; justify-content: center; margin-bottom: 30px;">
+        <h1 class="slide-title" style="text-align: center; padding-left: 0; font-size: calc(var(--title-size) * 1.2); margin-bottom: 0;">
+            {{ title }}
+        </h1>
+    </div>
+    
+    <!-- Main Image Area: Middle 50-60% -->
+    <div class="xhs-image-area" style="flex: 1; display: flex; align-items: center; justify-content: center; margin: 30px 0; min-height: 50%; max-height: 60%;">
+        {% set image_count = namespace(value=0) %}
+        {% for block in content_blocks %}
+            {% if block.type == 'image_placeholder' and block.image_path %}
+                {% set image_count.value = image_count.value + 1 %}
+            {% endif %}
+        {% endfor %}
+        
+        {% if image_count.value == 1 %}
+            <!-- Single Image Layout -->
+            {% for block in content_blocks %}
+                {% if block.type == 'image_placeholder' and block.image_path %}
+                    <div class="image-container" style="position: relative; width: 85%; height: 100%; margin: 0 auto; border-radius: 20px; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);">
+                        <img src="{{ block.image_path }}" alt="Slide image" style="border-radius: 20px;">
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% elif image_count.value >= 2 %}
+            <!-- Dual Image Layout -->
+            <div style="display: flex; gap: 20px; width: 90%; height: 100%; align-items: center; justify-content: center;">
+                {% set displayed = namespace(value=0) %}
+                {% for block in content_blocks %}
+                    {% if block.type == 'image_placeholder' and block.image_path and displayed.value < 2 %}
+                        <div class="image-container" style="position: relative; flex: 1; height: 100%; margin: 0; border-radius: 16px; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);">
+                            <img src="{{ block.image_path }}" alt="Slide image" style="border-radius: 16px;">
+                        </div>
+                        {% set displayed.value = displayed.value + 1 %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- No Image Placeholder -->
+            <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, {{ colors.accent }}15 0%, {{ colors.accent }}05 100%); border-radius: 20px; border: 2px dashed {{ colors.accent }}40;">
+                <div style="text-align: center; color: {{ colors.text }}80; font-size: calc(var(--content-size) * 0.8);">
+                    Image Placeholder
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Text Content Area: Bottom 20-30% -->
+    <div class="xhs-text-area" style="height: 25%; margin-top: 30px; overflow: hidden;">
+        {% set text_block_count = namespace(value=0) %}
+        {% for block in content_blocks %}
+            {% if block.type == 'text' %}
+                <div style="margin-bottom: 20px; text-align: left;">
+                    {% if block.section_title %}
+                        {% if text_block_count.value > 0 %}
+                            <div style="width: 40px; height: 2px; background: {{ colors.accent }}; margin: 15px 0; border-radius: 1px;"></div>
+                        {% endif %}
+                        <div class="section-header" style="font-size: calc(var(--header-size) * 0.9); margin-bottom: 12px; text-transform: none; letter-spacing: 0.02em;">
+                            {{ block.section_title }}
+                        </div>
+                    {% endif %}
+                    <div class="text-content text-overflow-safe" style="font-size: calc(var(--content-size) * 0.85); line-height: 1.6; -webkit-line-clamp: 5; max-height: calc(var(--content-size) * 0.85 * 1.6 * 5); color: {{ colors.text }};">{{- block.content -}}</div>
+                </div>
+                {% set text_block_count.value = text_block_count.value + 1 %}
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
